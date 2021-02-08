@@ -5,7 +5,6 @@ class NoteEvent {
 		this.scoreEventId = scoreEventId;
 		this.isMonophonic;
 		this.noteEventId;
-		this.octave;
 		this.chordTemplate;
 		this.parseNoteEventString(noteEventString);
 	}
