@@ -10,23 +10,22 @@ class PitchDetector {
 		this.frequencySet = new Set();
 		this.lastSet = new Set();
 		this.lastX = [];
-		this.initializenoteToFrequencyTable();
+		this.initializeNoteToFrequencyTable();
 		document.getElementById("resetLog").addEventListener("click", this.resetLog.bind(this));
 	}
 
-	startPitchDetection(mic) {
-	  this.pitch = ml5.pitchDetection(this.modelUrl, this.audioContext , mic.stream, this.modelLoaded.bind(this));
-		document.getElementById('status').innerHTML = 'On';
-		this.isActive = true;
-	}
-
-	initializenoteToFrequencyTable() {
+	initializeNoteToFrequencyTable() {
 		const self = this;
 		fetch("./data/NoteFrequencies.json")
 		.then(response => {
 		   return response.json();
 		})
 		.then(data => self.noteToFrequencyTable = data);
+	}
+
+	startPitchDetection(mic) {
+	  this.pitch = ml5.pitchDetection(this.modelUrl, this.audioContext , mic.stream, this.modelLoaded.bind(this));
+		this.isActive = true;
 	}
 
 	modelLoaded() {
@@ -49,7 +48,7 @@ class PitchDetector {
 
 	determineMatch(detectedPitch) {
 		const expectedPitch = this.noteToFrequencyTable[this.nextExpectedNoteEvent.noteEventId];
-		console.log("expectedPitch", expectedPitch, detectedPitch);
+		// console.log("expectedPitch", expectedPitch, detectedPitch);
 		document.getElementById('detectedPitchValue').innerHTML = detectedPitch;
 		document.getElementById('expectedPitchValue').innerHTML = expectedPitch;
 		// rough matching - to iterate on

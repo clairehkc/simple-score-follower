@@ -29,20 +29,26 @@
       margin-left: 16px;
     }
 
-    #pitchPageSection {
-      padding-bottom: 16px;
+    .pageSection {
+      padding-top: 12px;
+      padding-bottom: 12px;
     }
 
-    #chordPageSection {
-      padding-top: 16px;
+    .dataLine {
+      padding-top: 4px;
+      padding-bottom: 4px;
     }
   </style>
 </head>
 
 <body>
-  <div id="settingsPageSection">
+  <div class="pageSection" id="statusPageSection">
     Mic Status:
-    <div id="status"></div>
+    <div id="micStatus"></div>
+    Active Detector:
+    <div id="activeDetector"></div>
+  </div>
+  <div class="pageSection" id="settingsPageSection">
     Event to Detect:
     <input type="text" id="noteEventInput" value="">
     <button type="button" id="updateNoteEvent">Update</button>
@@ -50,25 +56,27 @@
     <button type="button" id="stop">Stop</button>
     <button type="button" id="resetLog">Reset Log</button>
   </div>
-  <div id="pitchPageSection">
+  <div class="pageSection" id="pitchPageSection">
     <h2>Pitch Detection</h2>
     <br><br>
-    Detected Pitch:
-    <div id="detectedPitchValue"></div>
     Expected Pitch:
-    <div id="expectedPitchValue"></div>
+    <div class="dataLine" id="expectedPitchValue"></div>
+    Detected Pitch:
+    <div class="dataLine" id="detectedPitchValue"></div>
     Match Result:
-    <div id="pitchMatchResult"></div>
+    <div class="dataLine" id="pitchMatchResult"></div>
   </div>
-  <div id="chordPageSection">
+  <div class="pageSection" id="chordPageSection">
     <h2>Chord Detection</h2>
     <br><br>
-    Detected Chord:
-    <div id="detectedChordValue"></div>
-    Expected Chord:
-    <div id="expectedChordValue"></div>
+    Expected Chord Template:
+    <div class="dataLine"id="expectedChordValue"></div>
+    Detected Chroma:
+    <div class="dataLine" id="detectedChromaValue"></div>
+    Closest Template:
+    <div class="dataLine" id="detectedChordValue"></div>
     Match Result:
-    <div id="chordMatchResult"></div>
+    <div class="dataLine" id="chordMatchResult"></div>
   </div>
 
 </body>

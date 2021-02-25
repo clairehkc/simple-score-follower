@@ -32,6 +32,7 @@ class NoteEventDetector {
 		if (this.streamIsActive) return;
 		this.audioContext.resume();
 		this.mic.start(this.startDetection.bind(this), this.startStreamErrorCallback);
+		document.getElementById('micStatus').innerHTML = 'On';
 		document.getElementById("stop").disabled = false;
 		this.streamIsActive = true;
 	}
@@ -53,22 +54,24 @@ class NoteEventDetector {
 				this.activeDetector = "CHORD";
 			}
 		}
+		document.getElementById('activeDetector').innerHTML = this.activeDetector;
 	}
 
 	startStreamErrorCallback(err) {
 		alert("Check microphone permissions");
 		console.error(err);
-		document.getElementById('status').innerHTML = 'Not Allowed';
+		document.getElementById('micStatus').innerHTML = 'Not Allowed';
 		this.streamIsActive = false;
 	}
 
 	stopStream() {
+		this.audioContext.suspend();
 		this.pitchDetector.stop();
 		this.chordDetector.stop();
 		this.mic.stop();
 		this.activeDetector = undefined;
 		this.streamIsActive = false;
-		document.getElementById('status').innerHTML = 'Off';
+		document.getElementById('micStatus').innerHTML = 'Off';
 		document.getElementById("stop").disabled = true;
 	}
 }
