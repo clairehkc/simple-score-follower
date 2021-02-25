@@ -11,7 +11,7 @@ class PitchDetector {
 		this.lastSet = new Set();
 		this.lastX = [];
 		this.initializenoteToFrequencyTable();
-		document.getElementById("resetLogPitchDetectionButton").addEventListener("click", this.resetLog.bind(this));
+		document.getElementById("resetLog").addEventListener("click", this.resetLog.bind(this));
 	}
 
 	startPitchDetection(mic) {
@@ -42,7 +42,7 @@ class PitchDetector {
 	    this.logFrequency(frequency);
 	    this.determineMatch(frequency);
 	  } else {
-	    document.getElementById('detectedValue').innerHTML = 'No pitch detected';
+	    document.getElementById('detectedPitchValue').innerHTML = 'No pitch detected';
 	  }
 	  if (this.isActive) this.getPitch();
 	}
@@ -50,11 +50,11 @@ class PitchDetector {
 	determineMatch(detectedPitch) {
 		const expectedPitch = this.noteToFrequencyTable[this.nextExpectedNoteEvent.noteEventId];
 		console.log("expectedPitch", expectedPitch, detectedPitch);
-		document.getElementById('detectedValue').innerHTML = detectedPitch;
-		document.getElementById('expectedValue').innerHTML = expectedPitch;
+		document.getElementById('detectedPitchValue').innerHTML = detectedPitch;
+		document.getElementById('expectedPitchValue').innerHTML = expectedPitch;
 		// rough matching - to iterate on
 		const matchResult = Math.abs(expectedPitch - detectedPitch) < 1;
-		document.getElementById('matchResult').innerHTML = matchResult;		
+		document.getElementById('pitchMatchResult').innerHTML = matchResult;		
 	}
 
 	logFrequency(frequency) {

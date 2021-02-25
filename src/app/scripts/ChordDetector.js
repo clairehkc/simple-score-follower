@@ -13,7 +13,7 @@ class ChordDetector {
 		  "bufferSize": 512,
 		  "featureExtractors": ["chroma"],
 		  "callback": features => {
-		    document.getElementById('result').innerHTML = features.chroma;
+		    document.getElementById('chordMatchResult').innerHTML = features.chroma;
 		  }
 		});
 		this.analyzer.start();

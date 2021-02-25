@@ -2,6 +2,7 @@ class NoteEventDetector {
 	constructor(audioContext, audioInput) {
 		this.nextExpectedNoteEvent;
 		this.activeDetector = undefined;
+		this.streamIsActive = false;
 
 		noCanvas();
 		this.audioContext = audioContext;
@@ -9,26 +10,30 @@ class NoteEventDetector {
 		this.pitchDetector = new PitchDetector(audioContext, this.mic);
 		this.chordDetector = new ChordDetector(audioContext, this.mic);
 		document.getElementById("updateNoteEvent").addEventListener("click", this.setNextExpectedNoteEvent.bind(this));
-		document.getElementById("startPitchDetectionButton").addEventListener("click", this.startStream.bind(this));
-		document.getElementById("stopPitchDetectionButton").addEventListener("click", this.stopStream.bind(this));
-		document.getElementById("startChordDetectionButton").addEventListener("click", this.startStream.bind(this));
-		document.getElementById("stopChordDetectionButton").addEventListener("click", this.stopStream.bind(this));
+		document.getElementById("start").addEventListener("click", this.startStream.bind(this));
+		document.getElementById("stop").addEventListener("click", this.stopStream.bind(this));
+		document.getElementById("start").disabled = true;
+		document.getElementById("stop").disabled = true;
 	}
 
 	setNextExpectedNoteEvent() {
 		const noteEventString = document.getElementById("noteEventInput").value;
-		if (!noteEventString) return;
-		this.nextExpectedNoteEvent = new NoteEvent(noteEventString);
-		if (this.mic.stream) this.startDetection();
-	}
-
-	startStream() {
-		if (!this.nextExpectedNoteEvent) {
+		if (!noteEventString) {
 			alert("Enter an Event to Detect");
 			return;
 		}
+		this.nextExpectedNoteEvent = new NoteEvent(noteEventString);
+		if (this.mic.stream) this.startDetection();
+		document.getElementById("start").disabled = false;
+	}
+
+	startStream() {
+		console.log("startStream", this.streamIsActive);
+		if (this.streamIsActive) return;
 		this.audioContext.resume();
 		this.mic.start(this.startDetection.bind(this), this.startStreamErrorCallback);
+		document.getElementById("stop").disabled = false;
+		this.streamIsActive = true;
 	}
 
 	startDetection() {
@@ -54,6 +59,7 @@ class NoteEventDetector {
 		alert("Check microphone permissions");
 		console.error(err);
 		document.getElementById('status').innerHTML = 'Not Allowed';
+		this.streamIsActive = false;
 	}
 
 	stopStream() {
@@ -61,6 +67,8 @@ class NoteEventDetector {
 		this.chordDetector.stop();
 		this.mic.stop();
 		this.activeDetector = undefined;
+		this.streamIsActive = false;
 		document.getElementById('status').innerHTML = 'Off';
+		document.getElementById("stop").disabled = true;
 	}
 }
