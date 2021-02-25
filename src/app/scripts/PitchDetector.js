@@ -11,7 +11,7 @@ class PitchDetector {
 		this.lastSet = new Set();
 		this.lastX = [];
 		this.initializenoteToFrequencyTable();
-		document.getElementById("resetLog").addEventListener("click", this.resetLog.bind(this));
+		document.getElementById("resetLogPitchDetectionButton").addEventListener("click", this.resetLog.bind(this));
 	}
 
 	startPitchDetection(mic) {

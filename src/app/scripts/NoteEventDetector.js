@@ -4,12 +4,15 @@ class NoteEventDetector {
 		this.activeDetector = undefined;
 
 		noCanvas();
+		this.audioContext = audioContext;
 		this.mic = audioInput;
 		this.pitchDetector = new PitchDetector(audioContext, this.mic);
 		this.chordDetector = new ChordDetector(audioContext, this.mic);
-		document.getElementById("start").addEventListener("click", this.startStream.bind(this));
-		document.getElementById("stop").addEventListener("click", this.stopStream.bind(this));
 		document.getElementById("updateNoteEvent").addEventListener("click", this.setNextExpectedNoteEvent.bind(this));
+		document.getElementById("startPitchDetectionButton").addEventListener("click", this.startStream.bind(this));
+		document.getElementById("stopPitchDetectionButton").addEventListener("click", this.stopStream.bind(this));
+		document.getElementById("startChordDetectionButton").addEventListener("click", this.startStream.bind(this));
+		document.getElementById("stopChordDetectionButton").addEventListener("click", this.stopStream.bind(this));
 	}
 
 	setNextExpectedNoteEvent() {
@@ -20,6 +23,11 @@ class NoteEventDetector {
 	}
 
 	startStream() {
+		if (!this.nextExpectedNoteEvent) {
+			alert("Enter an Event to Detect");
+			return;
+		}
+		this.audioContext.resume();
 		this.mic.start(this.startDetection.bind(this), this.startStreamErrorCallback);
 	}
 
@@ -43,6 +51,7 @@ class NoteEventDetector {
 	}
 
 	startStreamErrorCallback(err) {
+		alert("Check microphone permissions");
 		console.error(err);
 		document.getElementById('status').innerHTML = 'Not Allowed';
 	}
