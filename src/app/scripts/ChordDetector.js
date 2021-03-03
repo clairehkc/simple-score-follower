@@ -98,7 +98,6 @@ class ChordDetector {
 		const stringToLog = "Input Chord: " + this.nextExpectedNoteEvent.noteEventId + " | " + 
 			"Expected Chord: " + expectedChord + " | " +
 			"Detected Chroma: " + detectedChroma + " | " +
-			"Detected Template: " + detectedTemplate + " | " +
 			"Detected Chord: " + detectedChord + " | " +
 			"Match: " + matchResult + '\n';
 		this.logOutput.push(stringToLog);
