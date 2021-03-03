@@ -1,5 +1,5 @@
 class ChordDetector {
-	constructor(audioContext) {
+	constructor(audioContext, logOutput) {
 		this.audioContext = audioContext;
 		this.analyzer;
 		this.nextExpectedNoteEvent;
@@ -7,6 +7,7 @@ class ChordDetector {
 		this.chordToTemplateTable = {};
 		this.templateToChordTable = {};
 		this.templates = [];
+		this.logOutput = logOutput;
 
 		this.initializeChordToTemplateTable();
 	}
@@ -38,19 +39,22 @@ class ChordDetector {
 	}
 
 	getChordCallback(features) {
-		document.getElementById('expectedChordValue').innerHTML = this.getChordForNoteEvent(this.nextExpectedNoteEvent.noteEventId);
-		document.getElementById('detectedChromaValue').innerHTML = features.chroma;
-		this.determineMatch(features.chroma);
+		const expectedChord = this.getChordForNoteEvent(this.nextExpectedNoteEvent.noteEventId);
+		document.getElementById('expectedChordValue').innerHTML = expectedChord;
+		const matchResult = this.determineMatch(expectedChord, features.chroma);
 	}
 
-	determineMatch(detectedChroma) {
+	determineMatch(expectedChord, detectedChroma) {
 		if (this.isZeroVector(detectedChroma)) return;
-		const nextExpectedNoteEventChord = this.getChordForNoteEvent(this.nextExpectedNoteEvent.noteEventId);
 		const detectedTemplate = this.getTemplateForDetectedChroma(detectedChroma);
+		const truncatedChroma = detectedChroma.map(value => value.toFixed(2));
+		document.getElementById('detectedChromaValue').innerHTML = truncatedChroma;
 		const detectedChord = this.getChordWithTemplate(detectedTemplate);
 		document.getElementById('detectedChordValue').innerHTML = detectedChord;		
-		const matchResult = nextExpectedNoteEventChord === detectedChord;
-		document.getElementById('chordMatchResult').innerHTML = matchResult;		
+		const matchResult = expectedChord === detectedChord;
+		document.getElementById('chordMatchResult').innerHTML = matchResult;
+		this.formatForLog(expectedChord, truncatedChroma, detectedTemplate, detectedChord, matchResult);
+		return matchResult;
 	}
 
 	// closest chord label for the score event
@@ -88,5 +92,15 @@ class ChordDetector {
 	stop() {
 		if (this.analyzer) this.analyzer.stop();
 		this.isActive = false;
+	}
+
+	formatForLog(expectedChord, detectedChroma, detectedTemplate, detectedChord, matchResult) {
+		const stringToLog = "Input Chord: " + this.nextExpectedNoteEvent.noteEventId + " | " + 
+			"Expected Chord: " + expectedChord + " | " +
+			"Detected Chroma: " + detectedChroma + " | " +
+			"Detected Template: " + detectedTemplate + " | " +
+			"Detected Chord: " + detectedChord + " | " +
+			"Match: " + matchResult + '\n';
+		this.logOutput.push(stringToLog);
 	}
 }

@@ -1,19 +1,17 @@
 class PitchDetector {
-	constructor(audioContext) {
+	constructor(audioContext, logOutput) {
 		this.audioContext = audioContext;
 		this.modelUrl = 'https://cdn.jsdelivr.net/gh/ml5js/ml5-data-and-models/models/pitch-detection/crepe/';
 		this.isActive = false;
 		this.pitchDetector;
 		this.nextExpectedNoteEvent;
-		this.noteToFrequencyTable;
+		this.noteToFrequencyTable = {};
+		this.logOutput = logOutput;
 
 		this.frequencySet = new Set();
 		this.lastSet = new Set();
 		this.lastX = [];
-		this.detectedFrequencies = []; // generalize for chords too and move up to parent
-		// log expected chord name vs detected
 		this.initializeNoteToFrequencyTable();
-		document.getElementById("saveLog").addEventListener("click", this.saveLog.bind(this));
 	}
 
 	initializeNoteToFrequencyTable() {
@@ -58,20 +56,14 @@ class PitchDetector {
 		return matchResult	
 	}
 
-	formatForLog(expectedPitch, frequency, matchResult) {
-		const stringToLog = "Expected: " + expectedPitch + " | " +
-			"Detected: " + frequency + " | " +
-			"Match: " + matchResult + '\n';
-		this.detectedFrequencies.push(stringToLog);
-	}
-
-	saveLog() {
-		let writer = createWriter('pitch_detector_log.txt');
-		writer.write(this.detectedFrequencies);
-		writer.close();
-	}
-
 	stop() {
 		this.isActive = false;
+	}
+
+	formatForLog(expectedPitch, frequency, matchResult) {
+		const stringToLog = "Expected Pitch: " + expectedPitch + " | " +
+			"Detected Pitch: " + frequency + " | " +
+			"Match: " + matchResult + '\n';
+		this.logOutput.push(stringToLog);
 	}
 }

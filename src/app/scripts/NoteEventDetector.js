@@ -7,13 +7,15 @@ class NoteEventDetector {
 		noCanvas();
 		this.audioContext = audioContext;
 		this.mic = audioInput;
-		this.pitchDetector = new PitchDetector(audioContext, this.mic);
-		this.chordDetector = new ChordDetector(audioContext, this.mic);
+		this.logOutput = [];
+		this.pitchDetector = new PitchDetector(audioContext, this.logOutput);
+		this.chordDetector = new ChordDetector(audioContext, this.logOutput);
 		document.getElementById("updateNoteEvent").addEventListener("click", this.setNextExpectedNoteEvent.bind(this));
 		document.getElementById("start").addEventListener("click", this.startStream.bind(this));
 		document.getElementById("stop").addEventListener("click", this.stopStream.bind(this));
 		document.getElementById("start").disabled = true;
 		document.getElementById("stop").disabled = true;
+		document.getElementById("saveLog").addEventListener("click", this.saveLog.bind(this));
 	}
 
 	setNextExpectedNoteEvent() {
@@ -72,5 +74,11 @@ class NoteEventDetector {
 		this.streamIsActive = false;
 		document.getElementById('micStatus').innerHTML = 'Off';
 		document.getElementById("stop").disabled = true;
+	}
+
+	saveLog() {
+		let writer = createWriter('note_event_detector_log.txt');
+		writer.write(this.logOutput);
+		writer.close();
 	}
 }
