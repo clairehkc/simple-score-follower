@@ -8,8 +8,10 @@
 
 3) In Chrome, open `http://localhost:8000/src/app/`
 
-4) Enter an event in the form of `<note><octave>` for a single note or `<note1-note2-note3>` for a chord. Try entering "C4" or "C-E-G" for an example.
+## Running NoteEventDetector
 
-5) Hit "Update" and then "Start". You can continue to update the event while the detector is running and the pitch or chord detector will activate accordingly.
+1) Enter an event in the form of `<note><octave>` for a single note or `<note1-note2-note3>` for a chord. Try entering "C4" or "C-E-G" for an example.
+
+2) Hit "Update" and then "Start". You can continue to update the event while the detector is running and the pitch or chord detector will activate accordingly.
 
 Chord detection currently supports major and minor chords only. 
