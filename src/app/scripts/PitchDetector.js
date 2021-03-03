@@ -10,7 +10,8 @@ class PitchDetector {
 		this.frequencySet = new Set();
 		this.lastSet = new Set();
 		this.lastX = [];
-		this.detectedFrequencies = [];
+		this.detectedFrequencies = []; // generalize for chords too and move up to parent
+		// log expected chord name vs detected
 		this.initializeNoteToFrequencyTable();
 		document.getElementById("saveLog").addEventListener("click", this.saveLog.bind(this));
 	}
