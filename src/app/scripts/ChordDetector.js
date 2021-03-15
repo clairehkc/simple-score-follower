@@ -1,5 +1,5 @@
 class ChordDetector {
-	constructor(audioContext, logOutput) {
+	constructor(audioContext, logTable) {
 		this.audioContext = audioContext;
 		this.analyzer;
 		this.nextExpectedNoteEvent;
@@ -7,7 +7,7 @@ class ChordDetector {
 		this.chordToTemplateTable = {};
 		this.templateToChordTable = {};
 		this.templates = [];
-		this.logOutput = logOutput;
+		this.logTable = logTable;
 
 		this.initializeChordToTemplateTable();
 	}
@@ -46,14 +46,14 @@ class ChordDetector {
 
 	determineMatch(expectedChord, detectedChroma) {
 		if (this.isZeroVector(detectedChroma)) return;
-		const detectedTemplate = this.getTemplateForDetectedChroma(detectedChroma);
+		const templateGuess = this.guessTemplateForDetectedChroma(detectedChroma);
 		const truncatedChroma = detectedChroma.map(value => value.toFixed(2));
 		document.getElementById('detectedChromaValue').innerHTML = truncatedChroma;
-		const detectedChord = this.getChordWithTemplate(detectedTemplate);
+		const detectedChord = this.getChordWithTemplate(templateGuess);
 		document.getElementById('detectedChordValue').innerHTML = detectedChord;		
 		const matchResult = expectedChord === detectedChord;
 		document.getElementById('chordMatchResult').innerHTML = matchResult;
-		this.formatForLog(expectedChord, truncatedChroma, detectedTemplate, detectedChord, matchResult);
+		this.logResult(expectedChord, truncatedChroma, detectedChord, matchResult);
 		return matchResult;
 	}
 
@@ -64,7 +64,7 @@ class ChordDetector {
 	}
 
 	// closest chroma template for detected chroma
-	getTemplateForDetectedChroma(detectedChroma) {
+	guessTemplateForDetectedChroma(detectedChroma) {
 		let bestMatch;
 		let bestMatchDistance = 100
 		this.templates.map(template => {
@@ -94,12 +94,12 @@ class ChordDetector {
 		this.isActive = false;
 	}
 
-	formatForLog(expectedChord, detectedChroma, detectedTemplate, detectedChord, matchResult) {
-		const stringToLog = "Input Chord: " + this.nextExpectedNoteEvent.noteEventId + " | " + 
-			"Expected Chord: " + expectedChord + " | " +
-			"Detected Chroma: " + detectedChroma + " | " +
-			"Detected Chord: " + detectedChord + " | " +
-			"Match: " + matchResult + '\n';
-		this.logOutput.push(stringToLog);
+	logResult(expectedChord, detectedChroma, detectedChord, matchResult) {
+		let newRow = this.logTable.addRow();
+		newRow.setString('Type', 'Chord');
+		newRow.setString('Expected', expectedChord);
+		newRow.setString('Detected', detectedChroma.toString());
+		newRow.setString('Guess', detectedChord);
+		newRow.setString('Match', matchResult.toString());	
 	}
 }

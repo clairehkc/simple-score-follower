@@ -1,12 +1,12 @@
 class PitchDetector {
-	constructor(audioContext, logOutput) {
+	constructor(audioContext, logTable) {
 		this.audioContext = audioContext;
 		this.modelUrl = 'https://cdn.jsdelivr.net/gh/ml5js/ml5-data-and-models/models/pitch-detection/crepe/';
 		this.isActive = false;
 		this.pitchDetector;
 		this.nextExpectedNoteEvent;
 		this.noteToFrequencyTable = {};
-		this.logOutput = logOutput;
+		this.logTable = logTable;
 
 		this.frequencySet = new Set();
 		this.lastSet = new Set();
@@ -40,7 +40,7 @@ class PitchDetector {
 	  if (frequency) {
 	    const expectedPitch = this.noteToFrequencyTable[this.nextExpectedNoteEvent.noteEventId];
 	    const matchResult = this.determineMatch(expectedPitch, frequency);
-	    this.formatForLog(expectedPitch, frequency, matchResult);
+	    this.logResult(expectedPitch, frequency, matchResult);
 	  } else {
 	    document.getElementById('detectedPitchValue').innerHTML = 'No pitch detected';
 	  }
@@ -60,10 +60,12 @@ class PitchDetector {
 		this.isActive = false;
 	}
 
-	formatForLog(expectedPitch, frequency, matchResult) {
-		const stringToLog = "Expected Pitch: " + expectedPitch + " | " +
-			"Detected Pitch: " + frequency + " | " +
-			"Match: " + matchResult + '\n';
-		this.logOutput.push(stringToLog);
+	logResult(expectedPitch, frequency, matchResult) {
+		let newRow = this.logTable.addRow();
+		newRow.setString('Type', 'Pitch');
+		newRow.setString('Expected', expectedPitch.toString());
+		newRow.setString('Detected', frequency.toString());
+		newRow.setString('Guess', '');
+		newRow.setString('Match', matchResult.toString());	
 	}
 }
