@@ -79,6 +79,7 @@ class NoteEventDetector {
 	setUpLogTable() {
 		const table = new p5.Table();
 		table.addColumn('Type');
+		table.addColumn('Input');
 		table.addColumn('Expected');
 		table.addColumn('Detected');
 		table.addColumn('Guess');

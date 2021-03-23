@@ -63,6 +63,7 @@ class PitchDetector {
 	logResult(expectedPitch, frequency, matchResult) {
 		let newRow = this.logTable.addRow();
 		newRow.setString('Type', 'Pitch');
+		newRow.setString('Input', this.nextExpectedNoteEvent.noteEventString);
 		newRow.setString('Expected', expectedPitch.toString());
 		newRow.setString('Detected', frequency.toString());
 		newRow.setString('Guess', '');

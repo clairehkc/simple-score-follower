@@ -97,6 +97,7 @@ class ChordDetector {
 	logResult(expectedChord, detectedChroma, detectedChord, matchResult) {
 		let newRow = this.logTable.addRow();
 		newRow.setString('Type', 'Chord');
+		newRow.setString('Input', this.nextExpectedNoteEvent.noteEventString);
 		newRow.setString('Expected', expectedChord);
 		newRow.setString('Detected', detectedChroma.toString());
 		newRow.setString('Guess', detectedChord);
