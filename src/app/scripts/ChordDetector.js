@@ -40,6 +40,7 @@ class ChordDetector {
 
 	getChordCallback(features) {
 		const expectedChord = this.getChordForNoteEvent(this.nextExpectedNoteEvent);
+		if (!expectedChord) console.error("Invalid note event for chord detector");
 		document.getElementById('expectedChordValue').innerHTML = expectedChord;
 		const matchResult = this.determineMatch(expectedChord, features.chroma);
 	}
@@ -70,7 +71,7 @@ class ChordDetector {
 			chordLabels.splice(chordLabels.indexOf(naturalChord), 1);
 			chordLabels.unshift(naturalChord);
 		}
-		console.log("chordLabels", chordLabels);
+		// still need to convert B#s to Cs, etc
 		return this.getChordForNoteEventHelper(keys, chordLabels);
 	}
 

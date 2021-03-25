@@ -39,6 +39,10 @@ class PitchDetector {
 	getPitchCallback(err, frequency) {
 	  if (frequency) {
 	    const expectedPitch = this.noteToFrequencyTable[this.nextExpectedNoteEvent.noteEventId];
+	    if (!expectedPitch) {
+	    	console.error("Invalid note event for pitch detector");
+	    	return;
+	    }
 	    const matchResult = this.determineMatch(expectedPitch, frequency);
 	    this.logResult(expectedPitch, frequency, matchResult);
 	  } else {
