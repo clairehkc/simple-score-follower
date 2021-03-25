@@ -12,7 +12,6 @@ class NoteEvent {
 	parseNoteEventString(noteEventString) {
 		this.keys = noteEventString.split('-');
 		this.isMonophonic = this.keys.length === 1;
-		// this.noteEventId = this.keys.sort().join('-'); // need to standardize sharps/flats
 		this.noteEventId = this.keys.join('-');
 	}
 }
