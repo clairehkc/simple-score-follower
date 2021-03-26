@@ -62,17 +62,32 @@ class ChordDetector {
 	getChordForNoteEvent(noteEvent) {
 		const keys = noteEvent.keys;
 		const noteEventId = noteEvent.noteEventId;
-		const chordIncludesSharps = keys.slice(0, 3).includes("#");
+		const chordIncludesSharps = keys.slice(0, 3).find(key => key.includes("#"));
 		// order chord labels by prioritizing chords with matching root notes and accidentals
-		let chordLabels = Object.keys(this.chordToTemplateTable).sort((a, b) => { return (b.startsWith(keys[0]) ? 1 : -1) });
-		if (!chordIncludesSharps && chordLabels[0].includes("#")) {
-			// if first three notes of the chord do not include sharps, prioritize the natural chord with the matching root
-			const naturalChord = chordLabels.find(label => !label.includes("#"));
-			chordLabels.splice(chordLabels.indexOf(naturalChord), 1);
-			chordLabels.unshift(naturalChord);
-		}
+		// prioritize chords with/without sharps based on whether or not the lower three notes of the event include sharps
+		let chordLabels = Object.keys(this.chordToTemplateTable).sort((a, b) => { 
+			if (b.startsWith(keys[0])) {
+				if (a.startsWith(keys[0])) {
+					if (chordIncludesSharps) {
+						return (b.includes("#")) ? 1 : -1;
+					} else {
+						return (!b.includes("#")) ? 1 : -1;
+					}
+				}
+				return 1;
+			} else {
+				if (!a.startsWith(keys[0])) {
+					if (chordIncludesSharps) {
+						return (b.includes("#")) ? 1 : -1;
+					} else {
+						return (!b.includes("#")) ? 1 : -1;
+					}
+				}
+				return -1;
+			} 
+		});
 		// still need to convert B#s to Cs, etc
-		return this.getChordForNoteEventHelper(keys, chordLabels);
+		return this.getChordForNoteEventHelper(keys.slice(), chordLabels);
 	}
 
 	getChordForNoteEventHelper(keys, chordLabels) {
