@@ -54,7 +54,6 @@ class PitchDetector {
 	determineMatch(expectedPitch, detectedPitch) {
 		document.getElementById('detectedPitchValue').innerHTML = detectedPitch;
 		document.getElementById('expectedPitchValue').innerHTML = expectedPitch;
-		// rough matching - to iterate on
 		const matchResult = Math.abs(expectedPitch - detectedPitch) < 1;
 		document.getElementById('pitchMatchResult').innerHTML = matchResult;	
 		return matchResult	
@@ -66,11 +65,12 @@ class PitchDetector {
 
 	logResult(expectedPitch, frequency, matchResult) {
 		let newRow = this.logTable.addRow();
+		const guess = matchResult ? this.nextExpectedNoteEvent.noteEventString : "--";
 		newRow.setString('Type', 'Pitch');
 		newRow.setString('Input', this.nextExpectedNoteEvent.noteEventString);
 		newRow.setString('Expected', expectedPitch.toString());
 		newRow.setString('Detected', frequency.toString());
-		newRow.setString('Guess', '');
+		newRow.setString('Guess', guess);
 		newRow.setString('Match', matchResult.toString());	
 	}
 }
