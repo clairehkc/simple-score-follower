@@ -49,6 +49,16 @@ class ChordDetector {
 		if (this.isZeroVector(detectedChroma)) return;
 		const templateGuess = this.guessTemplateForDetectedChroma(detectedChroma);
 		const truncatedChroma = detectedChroma.map(value => value.toFixed(2));
+
+		// filter out results without a definitive matching peak with the expected chord (value close to 1)
+		const expectedTemplate = this.chordToTemplateTable[expectedChord];
+		const expectedPeakIndices = [];
+		for (let i = 0; i < expectedTemplate.length; i++) {
+			if (expectedTemplate[i] === 1) expectedPeakIndices.push(i);
+		}
+		const hasMatchingPeak = expectedPeakIndices.find(index => detectedChroma[index] >= .99);
+		if (!hasMatchingPeak) return false;
+
 		document.getElementById('detectedChromaValue').innerHTML = truncatedChroma;
 		const detectedChord = this.getChordWithTemplate(templateGuess);
 		document.getElementById('detectedChordValue').innerHTML = detectedChord;		
