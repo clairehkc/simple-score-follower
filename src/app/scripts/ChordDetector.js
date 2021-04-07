@@ -48,7 +48,9 @@ class ChordDetector {
 
 	determineMatch(expectedChord, detectedChroma) {
 		if (this.isZeroVector(detectedChroma)) return;
-		const templateGuess = this.guessTemplateForDetectedChroma(detectedChroma);
+		const templateGuessList = this.guessTemplateForDetectedChroma(detectedChroma, 3);
+		console.log("guess list", templateGuessList);
+		const templateGuess = templateGuessList[0];
 		const truncatedChroma = detectedChroma.map(value => value.toFixed(2));
 
 		document.getElementById('detectedChromaValue').innerHTML = truncatedChroma;
@@ -152,17 +154,29 @@ class ChordDetector {
 	}
 
 	// determines the closest chroma template for detected chroma
-	guessTemplateForDetectedChroma(detectedChroma) {
-		let bestMatch;
-		let bestMatchDistance = 100
+	// rank top n matches in ascending distance
+	guessTemplateForDetectedChroma(detectedChroma, guesses = 1) {
+		let topMatchList = [];
+		for (let i = 0; i < guesses; i++) {
+			topMatchList[i] = { label: "", distance: 100 };
+		}
+
 		this.templates.map(template => {
 			const distance = this.getVectorDistance(template, detectedChroma);
-			if (distance < bestMatchDistance) {
-				bestMatch = template;
-				bestMatchDistance = distance;
+			let newTopMatch;
+			let newTopMatchIndex;
+			for (let i = guesses - 1; i >= 0; i--) {
+				const currentTopMatch = topMatchList[i];
+				if (distance < currentTopMatch.distance) {
+					newTopMatch = { label: this.getChordWithTemplate(template), distance };
+					newTopMatchIndex = i;
+				} else {
+					break;
+				}
 			}
+			if (newTopMatch) topMatchList[newTopMatchIndex] = newTopMatch;
 		});
-		return bestMatch;
+		return topMatchList;
 	}
 
 	getChordWithTemplate(template) {
