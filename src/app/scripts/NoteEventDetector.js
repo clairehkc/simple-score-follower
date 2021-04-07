@@ -16,6 +16,7 @@ class NoteEventDetector {
 		document.getElementById("start").disabled = true;
 		document.getElementById("stop").disabled = true;
 		document.getElementById("saveLog").addEventListener("click", this.saveLog.bind(this));
+		document.getElementById("clearLog").addEventListener("click", this.clearLog.bind(this));
 	}
 
 	setNextExpectedNoteEvent() {
@@ -89,5 +90,9 @@ class NoteEventDetector {
 
 	saveLog() {
 		saveTable(this.logTable, 'note_event_detector_log.csv');
+	}
+
+	clearLog() {
+		this.logTable.clearRows();
 	}
 }
