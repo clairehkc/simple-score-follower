@@ -48,27 +48,36 @@ class ChordDetector {
 
 	determineMatch(expectedChord, detectedChroma) {
 		if (this.isZeroVector(detectedChroma)) return;
-		const templateGuessList = this.guessTemplateForDetectedChroma(detectedChroma, 3);
-		console.log("guess list", templateGuessList);
-		const templateGuess = templateGuessList[0];
+		const chordGuessList = this.getChordGuessForDetectedChroma(detectedChroma, 3);
+		const bestGuess = chordGuessList[0];
+		// if expectedChord is found in the top nguesses, consider it a match
+		const matchInGuesses = chordGuessList.find(guess => guess.label === expectedChord);
+		if (matchInGuesses) console.log("guess list", chordGuessList);
+		const detectedChord = matchInGuesses && matchInGuesses.label || bestGuess.label;
+
 		const truncatedChroma = detectedChroma.map(value => value.toFixed(2));
-
 		document.getElementById('detectedChromaValue').innerHTML = truncatedChroma;
-		const detectedChord = this.getChordWithTemplate(templateGuess);
 		document.getElementById('detectedChordValue').innerHTML = detectedChord;
-		let matchResult = expectedChord === detectedChord;
 
-		// filter out results without a definitive matching peak with the expected chord (value close to 1)
-		const expectedTemplate = this.chordToTemplateTable[expectedChord];
-		const expectedPeakIndices = [];
-		for (let i = 0; i < expectedTemplate.length; i++) {
-			if (expectedTemplate[i] === 1) expectedPeakIndices.push(i);
-		}
-		const hasMatchingPeak = expectedPeakIndices.find(index => detectedChroma[index] >= .99);
-		if (!hasMatchingPeak) matchResult = false;
+		const matchResult = expectedChord === detectedChord;
+
+		// if (matchResult) {
+		// 	// filter out results without a definitive matching peak with the expected chord (value close to 1)
+		// 	const expectedTemplate = this.chordToTemplateTable[expectedChord];
+		// 	const expectedPeakIndices = [];
+		// 	for (let i = 0; i < expectedTemplate.length; i++) {
+		// 		if (expectedTemplate[i] === 1) expectedPeakIndices.push(i);
+		// 	}
+		// 	const hasMatchingPeak = expectedPeakIndices.find(index => detectedChroma[index] >= .99);
+		// 	if (!hasMatchingPeak) {
+		// 		matchResult = false;
+		// 		console.log("non matching peak");
+		// 	}
+		// }
 
 		document.getElementById('chordMatchResult').innerHTML = matchResult;
 		this.logResult(expectedChord, truncatedChroma, detectedChord, matchResult);
+		if (matchResult) console.log("matched");
 		return matchResult;
 	}
 
@@ -155,7 +164,7 @@ class ChordDetector {
 
 	// determines the closest chroma template for detected chroma
 	// rank top n matches in ascending distance
-	guessTemplateForDetectedChroma(detectedChroma, guesses = 1) {
+	getChordGuessForDetectedChroma(detectedChroma, guesses = 1) {
 		let topMatchList = [];
 		for (let i = 0; i < guesses; i++) {
 			topMatchList[i] = { label: "", distance: 100 };
