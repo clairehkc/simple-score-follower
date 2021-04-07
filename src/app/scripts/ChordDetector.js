@@ -32,7 +32,7 @@ class ChordDetector {
 		  "audioContext": this.audioContext,
 		  "source": mic.mediaStream,
 		  "bufferSize": 512,
-		  "featureExtractors": ["chroma"],
+		  "featureExtractors": ["chroma", "rms"],
 		  "callback": features => this.getChordCallback(features)
 		});
 		this.analyzer.start();
@@ -42,6 +42,7 @@ class ChordDetector {
 		const expectedChord = this.getChordForNoteEvent(this.nextExpectedNoteEvent);
 		if (!expectedChord) console.error("Invalid note event for chord detector");
 		document.getElementById('expectedChordValue').innerHTML = expectedChord;
+		if (features.rms < 0.02) return; // loudness - can iterate on this to filter out overtones
 		const matchResult = this.determineMatch(expectedChord, features.chroma);
 	}
 
@@ -50,6 +51,11 @@ class ChordDetector {
 		const templateGuess = this.guessTemplateForDetectedChroma(detectedChroma);
 		const truncatedChroma = detectedChroma.map(value => value.toFixed(2));
 
+		document.getElementById('detectedChromaValue').innerHTML = truncatedChroma;
+		const detectedChord = this.getChordWithTemplate(templateGuess);
+		document.getElementById('detectedChordValue').innerHTML = detectedChord;
+		let matchResult = expectedChord === detectedChord;
+
 		// filter out results without a definitive matching peak with the expected chord (value close to 1)
 		const expectedTemplate = this.chordToTemplateTable[expectedChord];
 		const expectedPeakIndices = [];
@@ -57,12 +63,8 @@ class ChordDetector {
 			if (expectedTemplate[i] === 1) expectedPeakIndices.push(i);
 		}
 		const hasMatchingPeak = expectedPeakIndices.find(index => detectedChroma[index] >= .99);
-		if (!hasMatchingPeak) return false;
+		if (!hasMatchingPeak) matchResult = false;
 
-		document.getElementById('detectedChromaValue').innerHTML = truncatedChroma;
-		const detectedChord = this.getChordWithTemplate(templateGuess);
-		document.getElementById('detectedChordValue').innerHTML = detectedChord;		
-		const matchResult = expectedChord === detectedChord;
 		document.getElementById('chordMatchResult').innerHTML = matchResult;
 		this.logResult(expectedChord, truncatedChroma, detectedChord, matchResult);
 		return matchResult;
