@@ -16,7 +16,7 @@ class PitchDetector {
 
 	initializeNoteToFrequencyTable() {
 		const self = this;
-		fetch("./data/NoteFrequencies.json")
+		fetch("./data/NoteFundamentalFrequencies.json")
 		.then(response => {
 		   return response.json();
 		})
