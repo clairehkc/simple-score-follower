@@ -48,36 +48,35 @@ class ChordDetector {
 
 	determineMatch(expectedChord, detectedChroma) {
 		if (this.isZeroVector(detectedChroma)) return;
-		const chordGuessList = this.getChordGuessForDetectedChroma(detectedChroma, 3);
+		const chordGuessList = this.getChordGuessForDetectedChroma(detectedChroma, 2);
 		const bestGuess = chordGuessList[0];
-		// if expectedChord is found in the top nguesses, consider it a match
+		// if expectedChord is found in the top n guesses, consider it a match
 		const matchInGuesses = chordGuessList.find(guess => guess.label === expectedChord);
-		if (matchInGuesses) console.log("guess list", chordGuessList);
 		const detectedChord = matchInGuesses && matchInGuesses.label || bestGuess.label;
+		const matchResult = expectedChord === detectedChord;
 
 		const truncatedChroma = detectedChroma.map(value => value.toFixed(2));
 		document.getElementById('detectedChromaValue').innerHTML = truncatedChroma;
 		document.getElementById('detectedChordValue').innerHTML = detectedChord;
 
-		const matchResult = expectedChord === detectedChord;
-
-		// if (matchResult) {
-		// 	// filter out results without a definitive matching peak with the expected chord (value close to 1)
-		// 	const expectedTemplate = this.chordToTemplateTable[expectedChord];
-		// 	const expectedPeakIndices = [];
-		// 	for (let i = 0; i < expectedTemplate.length; i++) {
-		// 		if (expectedTemplate[i] === 1) expectedPeakIndices.push(i);
-		// 	}
-		// 	const hasMatchingPeak = expectedPeakIndices.find(index => detectedChroma[index] >= .99);
-		// 	if (!hasMatchingPeak) {
-		// 		matchResult = false;
-		// 		console.log("non matching peak");
-		// 	}
-		// }
+		if (matchResult) {
+			// filter out results without a matching peak with the expected chord
+			const expectedTemplate = this.chordToTemplateTable[expectedChord];
+			const expectedPeakIndices = [];
+			for (let i = 0; i < expectedTemplate.length; i++) {
+				if (expectedTemplate[i] === 1) expectedPeakIndices.push(i);
+			}
+			const sortedChroma = detectedChroma.slice().sort();
+			const detectedPeakIndices = sortedChroma.slice(9, 12).map(val => detectedChroma.indexOf(val)).sort();
+			const hasMatchingPeak = expectedPeakIndices.find(peakIndex => detectedPeakIndices.includes(peakIndex));
+			if (!hasMatchingPeak) {
+				matchResult = false;
+				console.info("non matching peak");
+			}
+		}
 
 		document.getElementById('chordMatchResult').innerHTML = matchResult;
 		this.logResult(expectedChord, truncatedChroma, detectedChord, matchResult);
-		if (matchResult) console.log("matched");
 		return matchResult;
 	}
 
