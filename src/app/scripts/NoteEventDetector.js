@@ -8,7 +8,8 @@ class NoteEventDetector {
 		this.audioContext = audioContext;
 		this.mic = audioInput;
 		this.logTable = this.setUpLogTable();
-		this.pitchDetector = new PitchDetector(audioContext, this.logTable);
+		this.isReady = false;
+		this.pitchDetector = new PitchDetector(audioContext, this.logTable, this.isReady);
 		this.chordDetector = new ChordDetector(audioContext, this.logTable);
 		document.getElementById("updateNoteEvent").addEventListener("click", this.setNextExpectedNoteEvent.bind(this));
 		document.getElementById("start").addEventListener("click", this.startStream.bind(this));
@@ -17,6 +18,10 @@ class NoteEventDetector {
 		document.getElementById("stop").disabled = true;
 		document.getElementById("saveLog").addEventListener("click", this.saveLog.bind(this));
 		document.getElementById("clearLog").addEventListener("click", this.clearLog.bind(this));
+	}
+
+	checkIsReady() {
+		return this.isReady;
 	}
 
 	setNextExpectedNoteEvent() {

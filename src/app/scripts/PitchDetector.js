@@ -1,5 +1,5 @@
 class PitchDetector {
-	constructor(audioContext, logTable) {
+	constructor(audioContext, logTable, isReady) {
 		this.audioContext = audioContext;
 		this.modelUrl = 'https://cdn.jsdelivr.net/gh/ml5js/ml5-data-and-models/models/pitch-detection/crepe/';
 		this.isActive = false;
@@ -7,6 +7,7 @@ class PitchDetector {
 		this.nextExpectedNoteEvent;
 		this.noteToFrequencyTable = {};
 		this.logTable = logTable;
+		this.isReady = isReady;
 
 		this.frequencySet = new Set();
 		this.lastSet = new Set();
@@ -38,6 +39,7 @@ class PitchDetector {
 
 	getPitchCallback(err, frequency) {
 	  if (frequency) {
+	  	if (!this.isReady) this.isReady = true;
 	    const expectedPitch = this.noteToFrequencyTable[this.nextExpectedNoteEvent.noteEventId];
 	    if (!expectedPitch) {
 	    	console.error("Invalid note event for pitch detector");
