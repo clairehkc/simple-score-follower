@@ -53,7 +53,7 @@ class ChordDetector {
 		// if expectedChord is found in the top n guesses, consider it a match
 		const matchInGuesses = chordGuessList.find(guess => guess.label === expectedChord);
 		const detectedChord = matchInGuesses && matchInGuesses.label || bestGuess.label;
-		const matchResult = expectedChord === detectedChord;
+		let matchResult = expectedChord === detectedChord;
 
 		const truncatedChroma = detectedChroma.map(value => value.toFixed(2));
 		document.getElementById('detectedChromaValue').innerHTML = truncatedChroma;
