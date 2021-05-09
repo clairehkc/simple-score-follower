@@ -1,5 +1,5 @@
 class ChordDetector {
-	constructor(audioContext, logTable) {
+	constructor(audioContext, logTable, isUsingTestInterface) {
 		this.audioContext = audioContext;
 		this.analyzer;
 		this.nextExpectedNoteEvent;
@@ -8,6 +8,7 @@ class ChordDetector {
 		this.templateToChordTable = {};
 		this.templates = [];
 		this.logTable = logTable;
+		this.isUsingTestInterface = isUsingTestInterface;
 
 		this.initializeChordToTemplateTable();
 	}
@@ -41,7 +42,7 @@ class ChordDetector {
 	getChordCallback(features) {
 		const expectedChord = this.getChordForNoteEvent(this.nextExpectedNoteEvent);
 		if (!expectedChord) console.error("Invalid note event for chord detector");
-		document.getElementById('expectedChordValue').innerHTML = expectedChord;
+		if (this.isUsingTestInterface) document.getElementById('expectedChordValue').innerHTML = expectedChord;
 		if (features.rms < 0.02) return; // loudness - can iterate on this to filter out overtones
 		const matchResult = this.determineMatch(expectedChord, features.chroma);
 	}
@@ -56,8 +57,6 @@ class ChordDetector {
 		let matchResult = expectedChord === detectedChord;
 
 		const truncatedChroma = detectedChroma.map(value => value.toFixed(2));
-		document.getElementById('detectedChromaValue').innerHTML = truncatedChroma;
-		document.getElementById('detectedChordValue').innerHTML = detectedChord;
 
 		if (matchResult) {
 			// filter out results without a matching peak with the expected chord
@@ -71,11 +70,16 @@ class ChordDetector {
 			const hasMatchingPeak = expectedPeakIndices.find(peakIndex => detectedPeakIndices.includes(peakIndex));
 			if (!hasMatchingPeak) {
 				matchResult = false;
-				console.info("non matching peak");
+				console.info("no matching peak found");
 			}
 		}
 
-		document.getElementById('chordMatchResult').innerHTML = matchResult;
+		if (this.isUsingTestInterface) {
+			document.getElementById('detectedChromaValue').innerHTML = truncatedChroma;
+			document.getElementById('detectedChordValue').innerHTML = detectedChord;
+			document.getElementById('chordMatchResult').innerHTML = matchResult;
+		}
+
 		this.logResult(expectedChord, truncatedChroma, detectedChord, matchResult);
 		return matchResult;
 	}

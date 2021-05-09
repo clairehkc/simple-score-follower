@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Score Following App</title>
+  <style>
+    body {
+      padding: 0;
+      margin: 0;
+    }
+  </style>
+  <script src="../lib/p5.min.js"></script>
+  <script src="../lib/addons/p5.sound.min.js"></script>
+  <script src="https://unpkg.com/ml5@0.6.0/dist/ml5.min.js"></script>
+  <script src="https://unpkg.com/meyda/dist/web/meyda.min.js"></script>
+  
+  <!-- NoteEventDetector files -->
+  <script src="scripts/NoteEvent.js"></script>  
+  <script src="scripts/PitchDetector.js"></script>  
+  <script src="scripts/ChordDetector.js"></script>
+  <script src="scripts/NoteEventDetector.js"></script>
+  
+  <script src="scripts/sketch.js"></script>
+
+  <style>
+    body {
+      margin-left: 16px;
+    }
+
+    .pageSection {
+      padding-top: 12px;
+      padding-bottom: 12px;
+    }
+
+    .dataLine {
+      padding-top: 4px;
+      padding-bottom: 4px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="pageSection" id="statusPageSection">
+    Mic Status:
+    <div id="micStatus"></div>
+    Active Detector:
+    <div id="activeDetector"></div>
+  </div>
+  <div class="pageSection" id="settingsPageSection">
+    Event to Detect:
+    <input type="text" id="noteEventInput" value="">
+    <button type="button" id="updateNoteEvent">Update</button>
+    <button type="button" id="start">Start</button>
+    <button type="button" id="stop">Stop</button>
+    <button type="button" id="saveLog">Save Session Log</button>
+    <button type="button" id="clearLog">Clear Session Log</button>
+  </div>
+  <div class="pageSection" id="pitchPageSection">
+    <h2>Pitch Detection</h2>
+    <br><br>
+    Expected Pitch:
+    <div class="dataLine" id="expectedPitchValue"></div>
+    Detected Pitch:
+    <div class="dataLine" id="detectedPitchValue"></div>
+    Match Result:
+    <div class="dataLine" id="pitchMatchResult"></div>
+  </div>
+  <div class="pageSection" id="chordPageSection">
+    <h2>Chord Detection</h2>
+    <br><br>
+    Expected Closest Chord:
+    <div class="dataLine"id="expectedChordValue"></div>
+    Detected Chroma:
+    <div class="dataLine" id="detectedChromaValue"></div>
+    Detected Closest Template:
+    <div class="dataLine" id="detectedChordValue"></div>
+    Match Result:
+    <div class="dataLine" id="chordMatchResult"></div>
+  </div>
+
+</body>
+
+</html>

@@ -3,44 +3,51 @@ class NoteEventDetector {
 		this.nextExpectedNoteEvent;
 		this.activeDetector = undefined;
 		this.streamIsActive = false;
+		this.isUsingTestInterface = false;
 
 		noCanvas();
 		this.audioContext = audioContext;
 		this.mic = audioInput;
 		this.logTable = this.setUpLogTable();
 		this.isReady = false;
-		this.pitchDetector = new PitchDetector(audioContext, this.logTable, this.isReady);
-		this.chordDetector = new ChordDetector(audioContext, this.logTable);
-		document.getElementById("updateNoteEvent").addEventListener("click", this.setNextExpectedNoteEvent.bind(this));
-		document.getElementById("start").addEventListener("click", this.startStream.bind(this));
-		document.getElementById("stop").addEventListener("click", this.stopStream.bind(this));
-		document.getElementById("start").disabled = true;
-		document.getElementById("stop").disabled = true;
-		document.getElementById("saveLog").addEventListener("click", this.saveLog.bind(this));
-		document.getElementById("clearLog").addEventListener("click", this.clearLog.bind(this));
+		if (document.getElementById("updateNoteEvent")) {
+			this.isUsingTestInterface = true;
+			document.getElementById("updateNoteEvent").addEventListener("click", this.setNextExpectedNoteEvent.bind(this));
+			document.getElementById("start").addEventListener("click", this.startStream.bind(this));
+			document.getElementById("stop").addEventListener("click", this.stopStream.bind(this));
+			document.getElementById("start").disabled = true;
+			document.getElementById("stop").disabled = true;
+			document.getElementById("saveLog").addEventListener("click", this.saveLog.bind(this));
+			document.getElementById("clearLog").addEventListener("click", this.clearLog.bind(this));
+		}
+		this.pitchDetector = new PitchDetector(audioContext, this.logTable, this.isReady, this.isUsingTestInterface);
+		this.chordDetector = new ChordDetector(audioContext, this.logTable, this.isUsingTestInterface);
 	}
 
 	checkIsReady() {
 		return this.isReady;
 	}
 
-	setNextExpectedNoteEvent() {
-		const noteEventString = document.getElementById("noteEventInput").value;
+	setNextExpectedNoteEvent(noteEventString) {
+		if (this.isUsingTestInterface) noteEventString = document.getElementById("noteEventInput").value;
+		console.log("setNextExpectedNoteEvent", this.isUsingTestInterface);
 		if (!noteEventString) {
 			alert("Enter an Event to Detect");
 			return;
 		}
 		this.nextExpectedNoteEvent = new NoteEvent(noteEventString);
 		if (this.mic.stream) this.startDetection();
-		document.getElementById("start").disabled = false;
+		if (this.isUsingTestInterface) document.getElementById("start").disabled = false;
 	}
 
 	startStream() {
 		if (this.streamIsActive) return;
 		this.audioContext.resume();
 		this.mic.start(this.startDetection.bind(this), this.startStreamErrorCallback);
-		document.getElementById('micStatus').innerHTML = 'On';
-		document.getElementById("stop").disabled = false;
+		if (this.isUsingTestInterface) {
+			document.getElementById('micStatus').innerHTML = 'On';
+			document.getElementById("stop").disabled = false;
+		}
 		this.streamIsActive = true;
 	}
 
@@ -61,13 +68,13 @@ class NoteEventDetector {
 				this.activeDetector = "CHORD";
 			}
 		}
-		document.getElementById('activeDetector').innerHTML = this.activeDetector;
+		if (this.isUsingTestInterface) document.getElementById('activeDetector').innerHTML = this.activeDetector;
 	}
 
 	startStreamErrorCallback(err) {
 		alert("Check microphone permissions");
 		console.error(err);
-		document.getElementById('micStatus').innerHTML = 'Not Allowed';
+		if (this.isUsingTestInterface) document.getElementById('micStatus').innerHTML = 'Not Allowed';
 		this.streamIsActive = false;
 	}
 
@@ -78,8 +85,10 @@ class NoteEventDetector {
 		this.mic.stop();
 		this.activeDetector = undefined;
 		this.streamIsActive = false;
-		document.getElementById('micStatus').innerHTML = 'Off';
-		document.getElementById("stop").disabled = true;
+		if (this.isUsingTestInterface) {
+			document.getElementById('micStatus').innerHTML = 'Off';
+			document.getElementById("stop").disabled = true;
+		}
 	}
 
 	setUpLogTable() {

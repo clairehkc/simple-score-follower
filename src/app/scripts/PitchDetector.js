@@ -1,5 +1,5 @@
 class PitchDetector {
-	constructor(audioContext, logTable, isReady) {
+	constructor(audioContext, logTable, isReady, isUsingTestInterface) {
 		this.audioContext = audioContext;
 		this.modelUrl = 'https://cdn.jsdelivr.net/gh/ml5js/ml5-data-and-models/models/pitch-detection/crepe/';
 		this.isActive = false;
@@ -8,6 +8,7 @@ class PitchDetector {
 		this.noteToFrequencyTable = {};
 		this.logTable = logTable;
 		this.isReady = isReady;
+		this.isUsingTestInterface = isUsingTestInterface;
 
 		this.frequencySet = new Set();
 		this.lastSet = new Set();
@@ -48,16 +49,18 @@ class PitchDetector {
 	    const matchResult = this.determineMatch(expectedPitch, frequency);
 	    this.logResult(expectedPitch, frequency, matchResult);
 	  } else {
-	    document.getElementById('detectedPitchValue').innerHTML = 'No pitch detected';
+	    if (this.isUsingTestInterface) document.getElementById('detectedPitchValue').innerHTML = 'No pitch detected';
 	  }
 	  if (this.isActive) this.getPitch();
 	}
 
 	determineMatch(expectedPitch, detectedPitch) {
-		document.getElementById('detectedPitchValue').innerHTML = detectedPitch;
-		document.getElementById('expectedPitchValue').innerHTML = expectedPitch;
 		const matchResult = Math.abs(expectedPitch - detectedPitch) < 1;
-		document.getElementById('pitchMatchResult').innerHTML = matchResult;	
+		if (this.isUsingTestInterface) {
+			document.getElementById('detectedPitchValue').innerHTML = detectedPitch;
+			document.getElementById('expectedPitchValue').innerHTML = expectedPitch;
+			document.getElementById('pitchMatchResult').innerHTML = matchResult;	
+		}
 		return matchResult	
 	}
 
