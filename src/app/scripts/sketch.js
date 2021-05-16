@@ -5,7 +5,8 @@ function setup() {
 	const noteEventDetector = new NoteEventDetector(audioContext, audioInput);
 	const scoreParser = new ScoreParser();
 	const testScorePath = "data/sample_scores/Bach_Minuet_in_G_Major_BWV_Anh._114.xml";
-	scoreParser.parse(testScorePath);
+	scoreParser.setScorePath(testScorePath);
+	document.getElementById("upload").addEventListener("click", scoreParser.parse.bind(scoreParser));
 }
 
 function draw() {

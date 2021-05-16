@@ -1,9 +1,29 @@
 class ScoreParser {
 	constructor() {
+		this.keySignatureTable = {};
+		this.initializeKeySignatureTable();
+		this.scorePath;
 	}
 
-	parse(filepath) {
-		console.log("filepath", filepath);
+	initializeKeySignatureTable() {
+		const self = this;
+		fetch("./data/CircleOfFifthsKeySignatures.json")
+		.then(response => {
+		   return response.json();
+		})
+		.then(data => {
+			self.keySignatureTable = data;
+		});
+	}
+
+	setScorePath(path) {
+		this.scorePath = path;
+	}
+
+	parse() {
+		console.log("scorePath", this.scorePath);
+		console.log("table", this.keySignatureTable);
+
 		const xhr = new XMLHttpRequest();
 
 		xhr.onload = function() {
@@ -17,7 +37,7 @@ class ScoreParser {
 		  console.error("Error while getting XML.");
 		}
 
-		xhr.open("GET", filepath);
+		xhr.open("GET", this.scorePath);
 		xhr.responseType = "document";
 		xhr.send();
 	}
