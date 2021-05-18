@@ -16,16 +16,32 @@ class ScoreParser {
 			"-2": ["B", "E"],
 			"-1": ["B"]
 		};
-		this.key1 = [];
-		this.key2 = []; 
-		this.scorePath;
+		this.keySignatures = [];
+		this.currentKeySignature;
+		this.scoreEvents = [];
 	}
 
 	parse(resultText) {
 		const parser = new DOMParser();
 		const xmlDoc = parser.parseFromString(resultText, "text/xml");
-		const measures = xmlDoc.getElementsByTagName("measure");
-		return measures;
+		this.measures = Array.from(xmlDoc.getElementsByTagName("measure"));
+		this.measures.forEach(measure => {
+			const measureNumber = measure.attributes.getNamedItem("number").value;
+			const children = Array.from(measure.children);
+			const attributes = children.find(child => child.tagName === "attributes");
+			if (attributes) {
+				const key = Array.from(attributes.children).find(child => child.tagName === "key");
+				const fifths = Array.from(key.children).find(child => child.tagName === "fifths");
+				const fifthsIndex = fifths.innerHTML;
+				this.currentKeySignature = this.keySignatureTable[fifthsIndex];
+				this.keySignatures.push({ measure: measureNumber, keySignature: this.currentKeySignature });
+				console.log("this.keySignatures", this.keySignatures);
+			}
+			const notes = children.filter(node => node.tagName === "note");
+			// console.log('notes', notes);
+			// this.scoreEvents.push({ measure: measureNumber, note });
+		});
+		return this.measures;
 	}
 
 }
