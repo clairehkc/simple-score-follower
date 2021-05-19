@@ -41,7 +41,7 @@ class ScoreParser {
 			// console.log('notes', notes);
 			// this.scoreEvents.push({ measure: measureNumber, note });
 		});
-		return this.measures;
+		return xmlDoc;
 	}
 
 }

@@ -3,26 +3,37 @@ function setup() {
 	const audioInput = new p5.AudioIn();
 
 	const noteEventDetector = new NoteEventDetector(audioContext, audioInput);
-	const scoreInput = document.getElementById("scoreInput");
 	document.getElementById("scoreUploadButton").addEventListener("click", () => scoreInput.click());
-	scoreInput.addEventListener("change", this.uploadScore);
+	scoreInput.addEventListener("change", this.uploadScore.bind(this));
 }
 
 function uploadScore() {
 	const reader = new FileReader();
 
-	const scoreParserCallback = (result) => {
-		console.log("scoreParserCallback", result);
+	const scoreParserCallback = (xmlDoc, data) => {
+		console.log("scoreParserCallback", xmlDoc, data);
+		this.renderScore(xmlDoc);
 	}
 
 	const onLoad = (event) => {
 		const scoreParser = new ScoreParser();
-		const result = scoreParser.parse(reader.result);
-		scoreParserCallback(result);
+		const xmlDoc = scoreParser.parse(reader.result);
+		scoreParserCallback(xmlDoc, scoreParser.measures);
 	};
 
 	reader.onload = onLoad;
-	reader.readAsText(this.files[0]);
+	const scoreInput = document.getElementById("scoreInput");
+	reader.readAsText(scoreInput.files[0]);
+}
+
+function renderScore(xmlDoc) {
+	const scoreContainer = document.getElementById("scoreContainer");
+	const osmd = new opensheetmusicdisplay.OpenSheetMusicDisplay(scoreContainer);
+	const loadPromise = osmd.load(xmlDoc);
+
+	loadPromise.then(() => {
+	  osmd.render();
+	});
 }
 
 function draw() {
