@@ -10,18 +10,17 @@ function setup() {
 function uploadScore() {
 	const reader = new FileReader();
 
-	const scoreParserCallback = (xmlDoc, data) => {
-		console.log("scoreParserCallback", xmlDoc, data);
+	const onUploadScore = (xmlDoc) => {
 		this.renderScore(xmlDoc);
 	}
 
-	const onLoad = (event) => {
-		const scoreParser = new ScoreParser();
-		const xmlDoc = scoreParser.parse(reader.result);
-		scoreParserCallback(xmlDoc, scoreParser.measures);
+	const onFileLoad = (event) => {
+		const domParser = new DOMParser();
+		const xmlDoc = domParser.parseFromString(reader.result, "text/xml");
+		onUploadScore(xmlDoc);
 	};
 
-	reader.onload = onLoad;
+	reader.onload = onFileLoad;
 	const scoreInput = document.getElementById("scoreInput");
 	reader.readAsText(scoreInput.files[0]);
 }
@@ -33,6 +32,10 @@ function renderScore(xmlDoc) {
 
 	loadPromise.then(() => {
 	  osmd.render();
+	  // osmd.cursor.show();
+
+	  const scoreParser = new ScoreParser();
+	  const result = scoreParser.parse(osmd);
 	});
 }
 
