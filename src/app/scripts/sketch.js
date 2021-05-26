@@ -2,7 +2,10 @@ function setup() {
 	const audioContext = getAudioContext();
 	const audioInput = new p5.AudioIn();
 
-	const noteEventDetector = new NoteEventDetector(audioContext, audioInput);
+	this.noteEventDetector = new NoteEventDetector(audioContext, audioInput);
+	this.scoreParser = new ScoreParser();
+	this.scoreEventList = [];
+
 	document.getElementById("scoreUploadButton").addEventListener("click", () => scoreInput.click());
 	scoreInput.addEventListener("change", this.uploadScore.bind(this));
 }
@@ -32,13 +35,11 @@ function renderScore(xmlDoc) {
 
 	loadPromise.then(() => {
 	  osmd.render();
-	  // osmd.cursor.show();
-
-	  const scoreParser = new ScoreParser();
-	  const result = scoreParser.parse(osmd);
+	  this.scoreEventList = this.scoreParser.parse(osmd);
+	  osmd.cursor.reset();
+	  osmd.cursor.show();
 	});
 }
 
 function draw() {
-  // put drawing code here
 }
