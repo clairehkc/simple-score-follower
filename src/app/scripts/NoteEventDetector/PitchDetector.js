@@ -27,12 +27,14 @@ class PitchDetector {
 	}
 
 	startPitchDetection(mic) {
-	  this.pitchDetector = ml5.pitchDetection(this.modelUrl, this.audioContext , mic.stream, this.modelLoaded.bind(this));
+		if (!this.pitchDetector) this.pitchDetector = ml5.pitchDetection(this.modelUrl, this.audioContext , mic.stream, this.modelLoaded.bind(this));
 		this.isActive = true;
+		this.getPitch();
 	}
 
 	modelLoaded() {
-	  this.getPitch();
+		if (!this.isReady) this.isReady = true;
+	  // if (this.isActive) this.getPitch();
 	}
 
 	getPitch() {
@@ -41,7 +43,6 @@ class PitchDetector {
 
 	getPitchCallback(err, frequency) {
 	  if (frequency) {
-	  	if (!this.isReady) this.isReady = true;
 	    const expectedPitch = this.noteToFrequencyTable[this.nextExpectedNoteEvent.noteEventId];
 	    if (!expectedPitch) {
 	    	console.error("Invalid note event for pitch detector");
@@ -56,14 +57,18 @@ class PitchDetector {
 	}
 
 	determineMatch(expectedPitch, detectedPitch) {
-		const matchResult = Math.abs(expectedPitch - detectedPitch) < 1;
+		const matchResult = Math.abs(expectedPitch - detectedPitch) < 10;
 		if (this.isUsingTestInterface) {
 			document.getElementById('detectedPitchValue').innerHTML = detectedPitch;
 			document.getElementById('expectedPitchValue').innerHTML = expectedPitch;
 			document.getElementById('pitchMatchResult').innerHTML = matchResult;	
 		}
 
-		if (matchResult) this.matchCallback(this.nextExpectedNoteEvent.scoreEventId);
+		if (matchResult) {
+			this.matchCallback(this.nextExpectedNoteEvent.scoreEventId);
+		} else {
+			// console.log("expectedPitch, detectedPitch", this.nextExpectedNoteEvent.noteEventString, expectedPitch, " | ",  detectedPitch);
+		}
 		return matchResult	
 	}
 

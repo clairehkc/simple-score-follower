@@ -30,13 +30,15 @@ class ChordDetector {
 	}
 
 	startChordDetection(mic) {
-		this.analyzer = Meyda.createMeydaAnalyzer({
-		  "audioContext": this.audioContext,
-		  "source": mic.mediaStream,
-		  "bufferSize": 512,
-		  "featureExtractors": ["chroma", "rms"],
-		  "callback": features => this.getChordCallback(features)
-		});
+		if (!this.analyzer) {
+			this.analyzer = Meyda.default.createMeydaAnalyzer({
+			  "audioContext": this.audioContext,
+			  "source": mic.mediaStream,
+			  "bufferSize": 512,
+			  "featureExtractors": ["chroma", "rms"],
+			  "callback": features => this.getChordCallback(features)
+			});
+		}
 		this.analyzer.start();
 	}
 
@@ -71,7 +73,7 @@ class ChordDetector {
 			const hasMatchingPeak = expectedPeakIndices.find(peakIndex => detectedPeakIndices.includes(peakIndex));
 			if (!hasMatchingPeak) {
 				matchResult = false;
-				console.info("no matching peak found");
+				console.log("no matching peak found");
 			}
 		}
 
@@ -81,7 +83,11 @@ class ChordDetector {
 			document.getElementById('chordMatchResult').innerHTML = matchResult;
 		}
 
-		if (matchResult) this.matchCallback(this.nextExpectedNoteEvent.scoreEventId);
+		if (matchResult) {
+			this.matchCallback(this.nextExpectedNoteEvent.scoreEventId);
+		} else {
+			console.log("expectedChord, detectedChord", expectedChord, " | ", detectedChord);
+		}
 		this.logResult(expectedChord, truncatedChroma, detectedChord, matchResult);
 		return matchResult;
 	}

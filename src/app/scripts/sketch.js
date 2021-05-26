@@ -62,7 +62,7 @@ function onFoundMatch(scoreEventId) {
 		noteEventDetector.setNextExpectedNoteEvent(currentScoreEvent.noteEventString, currentScoreEvent.scoreEventId);
 		osmd.cursor.next();
 	} else {
-		console.error("Received out of order match response from NoteEventDetector");
+		if (!noteEventDetector.isUsingTestInterface) console.error("Received out of order match response from NoteEventDetector");
 	}
 }
 

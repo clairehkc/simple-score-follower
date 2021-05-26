@@ -30,7 +30,6 @@ class NoteEventDetector {
 
 	setNextExpectedNoteEvent(noteEventString, scoreEventId) {
 		if (this.isUsingTestInterface) noteEventString = document.getElementById("noteEventInput").value;
-		console.log("setNextExpectedNoteEvent", noteEventString, scoreEventId);
 		if (!noteEventString) {
 			alert("Enter an Event to Detect");
 			return;
