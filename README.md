@@ -6,7 +6,7 @@
 
 2) In the `score-following` directory, start a SimpleHTTPServer via `python -m SimpleHTTPServer`
 
-3) In Chrome, open `http://localhost:8000/src/app/`
+3) In Chrome, open `http://localhost:8000/src/app/NoteEventDetectorTestInterface.html`
 
 ## Running NoteEventDetector
 
