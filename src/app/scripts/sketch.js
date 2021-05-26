@@ -1,20 +1,25 @@
+let noteEventDetector;
+let scoreParser;
+let scoreEventList = [];
+
 function setup() {
 	const audioContext = getAudioContext();
 	const audioInput = new p5.AudioIn();
 
-	this.noteEventDetector = new NoteEventDetector(audioContext, audioInput);
-	this.scoreParser = new ScoreParser();
-	this.scoreEventList = [];
+	noteEventDetector = new NoteEventDetector(audioContext, audioInput);
+	scoreParser = new ScoreParser();
+	scoreEventList = [];
 
 	document.getElementById("scoreUploadButton").addEventListener("click", () => scoreInput.click());
-	scoreInput.addEventListener("change", this.uploadScore.bind(this));
+	document.getElementById("skipEvent").addEventListener("click", skipEvent);
+	scoreInput.addEventListener("change", uploadScore);
 }
 
 function uploadScore() {
 	const reader = new FileReader();
 
 	const onUploadScore = (xmlDoc) => {
-		this.renderScore(xmlDoc);
+		renderScore(xmlDoc);
 	}
 
 	const onFileLoad = (event) => {
@@ -35,10 +40,14 @@ function renderScore(xmlDoc) {
 
 	loadPromise.then(() => {
 	  osmd.render();
-	  this.scoreEventList = this.scoreParser.parse(osmd);
+	  scoreEventList = scoreParser.parse(osmd);
 	  osmd.cursor.reset();
 	  osmd.cursor.show();
 	});
+}
+
+function skipEvent() {
+
 }
 
 function draw() {

@@ -1,8 +1,14 @@
 class ScoreParser {
 	constructor() {
+		if (document.getElementById("saveParserLog")) {
+			this.logTable = this.setUpLogTable();
+			document.getElementById("saveParserLog").addEventListener("click", this.saveParserLog.bind(this));
+		}
 	}
 
 	parse(osmd) {
+		if (this.logTable) this.logTable.clearRows();
+
 		const scoreEventList = [];
 		let scoreEventId = 0;
 		let noteEventString;
@@ -28,6 +34,7 @@ class ScoreParser {
 			}
 			console.log("scoreEvent", scoreEvent);
 			scoreEventList.push(event);
+			if (this.logTable) this.logResult(scoreEvent);
 			scoreEventId++;
 			osmd.cursor.next();
 		}
@@ -80,5 +87,33 @@ class ScoreParser {
 		}
 
 		return noteLetterString + accidentalString;
+	}
+
+	setUpLogTable() {
+		const table = new p5.Table();
+		table.addColumn('Event');
+		table.addColumn('Notes_Length');
+		table.addColumn('Measure_Number');
+		table.addColumn('Score_Id');
+		return table;
+	}
+
+	saveParserLog() {
+		if (!this.logTable) return;
+		saveTable(this.logTable, 'parser_log.csv');
+	}
+
+	logResult(scoreEvent) {
+		let newRow = this.logTable.addRow();
+		const {
+			noteEventString,
+			notesLength,
+			measureNumber,
+			scoreEventId,
+		} = scoreEvent;
+		newRow.setString('Event', noteEventString);
+		newRow.setString('Notes_Length', notesLength.toString());
+		newRow.setString('Measure_Number', measureNumber.toString());
+		newRow.setString('Score_Id', scoreEventId.toString());
 	}
 }
