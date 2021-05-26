@@ -9,6 +9,8 @@ function setup() {
 	const audioInput = new p5.AudioIn();
 
 	noteEventDetector = new NoteEventDetector(audioContext, audioInput, onFoundMatch);
+	if (noteEventDetector.isUsingTestInterface) return;
+
 	scoreParser = new ScoreParser();
 
 	const scoreInput = document.getElementById("scoreInput");
