@@ -1,5 +1,5 @@
 class NoteEventDetector {
-	constructor(audioContext, audioInput) {
+	constructor(audioContext, audioInput, matchCallback) {
 		this.nextExpectedNoteEvent;
 		this.activeDetector = undefined;
 		this.streamIsActive = false;
@@ -20,22 +20,22 @@ class NoteEventDetector {
 			document.getElementById("saveLog").addEventListener("click", this.saveLog.bind(this));
 			document.getElementById("clearLog").addEventListener("click", this.clearLog.bind(this));
 		}
-		this.pitchDetector = new PitchDetector(audioContext, this.logTable, this.isReady, this.isUsingTestInterface);
-		this.chordDetector = new ChordDetector(audioContext, this.logTable, this.isUsingTestInterface);
+		this.pitchDetector = new PitchDetector(audioContext, matchCallback, this.logTable, this.isReady, this.isUsingTestInterface);
+		this.chordDetector = new ChordDetector(audioContext, matchCallback, this.logTable, this.isUsingTestInterface);
 	}
 
 	checkIsReady() {
 		return this.isReady;
 	}
 
-	setNextExpectedNoteEvent(noteEventString) {
+	setNextExpectedNoteEvent(noteEventString, scoreEventId) {
 		if (this.isUsingTestInterface) noteEventString = document.getElementById("noteEventInput").value;
-		console.log("setNextExpectedNoteEvent", this.isUsingTestInterface);
+		console.log("setNextExpectedNoteEvent", noteEventString, scoreEventId);
 		if (!noteEventString) {
 			alert("Enter an Event to Detect");
 			return;
 		}
-		this.nextExpectedNoteEvent = new NoteEvent(noteEventString);
+		this.nextExpectedNoteEvent = new NoteEvent(noteEventString, scoreEventId);
 		if (this.mic.stream) this.startDetection();
 		if (this.isUsingTestInterface) document.getElementById("start").disabled = false;
 	}

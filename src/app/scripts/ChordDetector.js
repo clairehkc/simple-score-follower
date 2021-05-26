@@ -1,6 +1,7 @@
 class ChordDetector {
-	constructor(audioContext, logTable, isUsingTestInterface) {
+	constructor(audioContext, matchCallback, logTable, isUsingTestInterface) {
 		this.audioContext = audioContext;
+		this.matchCallback = matchCallback;
 		this.analyzer;
 		this.nextExpectedNoteEvent;
 		this.isActive = false;
@@ -80,6 +81,7 @@ class ChordDetector {
 			document.getElementById('chordMatchResult').innerHTML = matchResult;
 		}
 
+		if (matchResult) this.matchCallback(this.nextExpectedNoteEvent.scoreEventId);
 		this.logResult(expectedChord, truncatedChroma, detectedChord, matchResult);
 		return matchResult;
 	}

@@ -32,8 +32,7 @@ class ScoreParser {
 				measureNumber,
 				scoreEventId,
 			}
-			console.log("scoreEvent", scoreEvent);
-			scoreEventList.push(event);
+			scoreEventList.push(scoreEvent);
 			if (this.logTable) this.logResult(scoreEvent);
 			scoreEventId++;
 			osmd.cursor.next();

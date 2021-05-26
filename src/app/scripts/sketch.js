@@ -1,17 +1,20 @@
+let osmd;
 let noteEventDetector;
 let scoreParser;
 let scoreEventList = [];
+let currentScoreIndex = 0;
 
 function setup() {
 	const audioContext = getAudioContext();
 	const audioInput = new p5.AudioIn();
 
-	noteEventDetector = new NoteEventDetector(audioContext, audioInput);
+	noteEventDetector = new NoteEventDetector(audioContext, audioInput, onFoundMatch);
 	scoreParser = new ScoreParser();
-	scoreEventList = [];
 
+	const scoreInput = document.getElementById("scoreInput");
 	document.getElementById("scoreUploadButton").addEventListener("click", () => scoreInput.click());
 	document.getElementById("skipEvent").addEventListener("click", skipEvent);
+	document.getElementById("resetCursor").addEventListener("click", resetCursor);
 	scoreInput.addEventListener("change", uploadScore);
 }
 
@@ -35,7 +38,7 @@ function uploadScore() {
 
 function renderScore(xmlDoc) {
 	const scoreContainer = document.getElementById("scoreContainer");
-	const osmd = new opensheetmusicdisplay.OpenSheetMusicDisplay(scoreContainer);
+	osmd = new opensheetmusicdisplay.OpenSheetMusicDisplay(scoreContainer);
 	const loadPromise = osmd.load(xmlDoc);
 
 	loadPromise.then(() => {
@@ -43,11 +46,33 @@ function renderScore(xmlDoc) {
 	  scoreEventList = scoreParser.parse(osmd);
 	  osmd.cursor.reset();
 	  osmd.cursor.show();
+
+	  const currentScoreEvent = scoreEventList[currentScoreIndex];
+	  noteEventDetector.setNextExpectedNoteEvent(currentScoreEvent.noteEventString, currentScoreEvent.scoreEventId);
+		noteEventDetector.startStream();
 	});
 }
 
-function skipEvent() {
+function onFoundMatch(scoreEventId) {
+	if (scoreEventId === currentScoreIndex) {
+		currentScoreIndex++;
+		const currentScoreEvent = scoreEventList[currentScoreIndex];
+		noteEventDetector.setNextExpectedNoteEvent(currentScoreEvent.noteEventString, currentScoreEvent.scoreEventId);
+		osmd.cursor.next();
+	} else {
+		console.error("Received out of order match response from NoteEventDetector");
+	}
+}
 
+function skipEvent() {
+	onFoundMatch(currentScoreIndex);
+}
+
+function resetCursor() {
+	osmd.cursor.reset();
+	currentScoreIndex = 0;
+	const currentScoreEvent = scoreEventList[currentScoreIndex];
+	noteEventDetector.setNextExpectedNoteEvent(currentScoreEvent.noteEventString, currentScoreEvent.scoreEventId);
 }
 
 function draw() {

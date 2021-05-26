@@ -1,7 +1,8 @@
 class PitchDetector {
-	constructor(audioContext, logTable, isReady, isUsingTestInterface) {
+	constructor(audioContext, matchCallback, logTable, isReady, isUsingTestInterface) {
 		this.audioContext = audioContext;
 		this.modelUrl = 'https://cdn.jsdelivr.net/gh/ml5js/ml5-data-and-models/models/pitch-detection/crepe/';
+		this.matchCallback = matchCallback;
 		this.isActive = false;
 		this.pitchDetector;
 		this.nextExpectedNoteEvent;
@@ -61,6 +62,8 @@ class PitchDetector {
 			document.getElementById('expectedPitchValue').innerHTML = expectedPitch;
 			document.getElementById('pitchMatchResult').innerHTML = matchResult;	
 		}
+
+		if (matchResult) this.matchCallback(this.nextExpectedNoteEvent.scoreEventId);
 		return matchResult	
 	}
 
