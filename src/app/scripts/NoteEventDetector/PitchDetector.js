@@ -1,14 +1,14 @@
 class PitchDetector {
-	constructor(audioContext, matchCallback, logTable, isReady, isUsingTestInterface) {
+	constructor(audioContext, readyCallback, matchCallback, logTable, isUsingTestInterface) {
 		this.audioContext = audioContext;
 		this.modelUrl = 'https://cdn.jsdelivr.net/gh/ml5js/ml5-data-and-models/models/pitch-detection/crepe/';
+		this.readyCallback = readyCallback;
 		this.matchCallback = matchCallback;
 		this.isActive = false;
-		this.pitchDetector;
+		this.detector;
 		this.nextExpectedNoteEvent;
 		this.noteToFrequencyTable = {};
 		this.logTable = logTable;
-		this.isReady = isReady;
 		this.isUsingTestInterface = isUsingTestInterface;
 
 		this.frequencySet = new Set();
@@ -26,19 +26,21 @@ class PitchDetector {
 		.then(data => self.noteToFrequencyTable = data);
 	}
 
-	startPitchDetection(mic) {
-		if (!this.pitchDetector) this.pitchDetector = ml5.pitchDetection(this.modelUrl, this.audioContext , mic.stream, this.modelLoaded.bind(this));
+	initializePitchDetector(mic) {
+		this.detector = ml5.pitchDetection(this.modelUrl, this.audioContext , mic.stream, this.modelLoaded.bind(this));
+	}
+
+	startPitchDetection() {
 		this.isActive = true;
 		this.getPitch();
 	}
 
 	modelLoaded() {
-		if (!this.isReady) this.isReady = true;
-	  // if (this.isActive) this.getPitch();
+		this.readyCallback();
 	}
 
 	getPitch() {
-		this.pitchDetector.getPitch(this.getPitchCallback.bind(this));
+		this.detector.getPitch(this.getPitchCallback.bind(this));
 	}
 
 	getPitchCallback(err, frequency) {

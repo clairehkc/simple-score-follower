@@ -29,16 +29,17 @@ class ChordDetector {
 		});
 	}
 
-	startChordDetection(mic) {
-		if (!this.analyzer) {
-			this.analyzer = Meyda.default.createMeydaAnalyzer({
-			  "audioContext": this.audioContext,
-			  "source": mic.mediaStream,
-			  "bufferSize": 512,
-			  "featureExtractors": ["chroma", "rms"],
-			  "callback": features => this.getChordCallback(features)
-			});
-		}
+	initializeAnalyzer(mic) {
+		this.analyzer = Meyda.default.createMeydaAnalyzer({
+		  "audioContext": this.audioContext,
+		  "source": mic.mediaStream,
+		  "bufferSize": 512,
+		  "featureExtractors": ["chroma", "rms"],
+		  "callback": features => this.getChordCallback(features)
+		});
+	}
+
+	startChordDetection() {
 		this.analyzer.start();
 	}
 

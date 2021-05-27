@@ -8,7 +8,7 @@ function setup() {
 	const audioContext = getAudioContext();
 	const audioInput = new p5.AudioIn();
 
-	noteEventDetector = new NoteEventDetector(audioContext, audioInput, onFoundMatch);
+	noteEventDetector = new NoteEventDetector(audioContext, audioInput, onDetectorReady, onFoundMatch);
 	if (noteEventDetector.isUsingTestInterface) return;
 
 	scoreParser = new ScoreParser();
@@ -47,12 +47,15 @@ function renderScore(xmlDoc) {
 	  osmd.render();
 	  scoreEventList = scoreParser.parse(osmd);
 	  osmd.cursor.reset();
-	  osmd.cursor.show();
 
 	  const currentScoreEvent = scoreEventList[currentScoreIndex];
 	  noteEventDetector.setNextExpectedNoteEvent(currentScoreEvent.noteEventString, currentScoreEvent.scoreEventId);
 		noteEventDetector.startStream();
 	});
+}
+
+function onDetectorReady() {
+	osmd.cursor.show();
 }
 
 function onFoundMatch(scoreEventId) {

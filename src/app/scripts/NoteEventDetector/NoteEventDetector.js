@@ -1,5 +1,5 @@
 class NoteEventDetector {
-	constructor(audioContext, audioInput, matchCallback) {
+	constructor(audioContext, audioInput, readyCallback, matchCallback) {
 		this.nextExpectedNoteEvent;
 		this.activeDetector = undefined;
 		this.streamIsActive = false;
@@ -9,7 +9,6 @@ class NoteEventDetector {
 		this.audioContext = audioContext;
 		this.mic = audioInput;
 		this.logTable = this.setUpLogTable();
-		this.isReady = false;
 		if (document.getElementById("updateNoteEvent")) {
 			this.isUsingTestInterface = true;
 			document.getElementById("updateNoteEvent").addEventListener("click", this.setNextExpectedNoteEvent.bind(this));
@@ -20,12 +19,8 @@ class NoteEventDetector {
 			document.getElementById("saveLog").addEventListener("click", this.saveLog.bind(this));
 			document.getElementById("clearLog").addEventListener("click", this.clearLog.bind(this));
 		}
-		this.pitchDetector = new PitchDetector(audioContext, matchCallback, this.logTable, this.isReady, this.isUsingTestInterface);
+		this.pitchDetector = new PitchDetector(audioContext, readyCallback, matchCallback, this.logTable, this.isUsingTestInterface);
 		this.chordDetector = new ChordDetector(audioContext, matchCallback, this.logTable, this.isUsingTestInterface);
-	}
-
-	checkIsReady() {
-		return this.isReady;
 	}
 
 	setNextExpectedNoteEvent(noteEventString, scoreEventId) {
@@ -42,7 +37,8 @@ class NoteEventDetector {
 	startStream() {
 		if (this.streamIsActive) return;
 		this.audioContext.resume();
-		this.mic.start(this.startDetection.bind(this), this.startStreamErrorCallback);
+		console.log("this.mic", this.mic);
+		this.mic.start(this.startDetection.bind(this), this.onStartStreamError);
 		if (this.isUsingTestInterface) {
 			document.getElementById('micStatus').innerHTML = 'On';
 			document.getElementById("stop").disabled = false;
@@ -51,26 +47,31 @@ class NoteEventDetector {
 	}
 
 	startDetection() {
+		if (!this.pitchDetector.detector && !this.chordDetector.analyzer) {
+			this.pitchDetector.initializePitchDetector(this.mic);
+			this.chordDetector.initializeAnalyzer(this.mic);
+		}
+
 		if (!this.nextExpectedNoteEvent) return;
 		if (this.nextExpectedNoteEvent.isMonophonic) {
 			this.pitchDetector.nextExpectedNoteEvent = this.nextExpectedNoteEvent;
 			if (this.activeDetector !== "PITCH") {
 				this.chordDetector.stop();
-				this.pitchDetector.startPitchDetection(this.mic);
+				this.pitchDetector.startPitchDetection();
 				this.activeDetector = "PITCH";
 			}
 		} else {
 			this.chordDetector.nextExpectedNoteEvent = this.nextExpectedNoteEvent;
 			if (this.activeDetector !== "CHORD") {
 				this.pitchDetector.stop();
-				this.chordDetector.startChordDetection(this.mic);
+				this.chordDetector.startChordDetection();
 				this.activeDetector = "CHORD";
 			}
 		}
 		if (this.isUsingTestInterface) document.getElementById('activeDetector').innerHTML = this.activeDetector;
 	}
 
-	startStreamErrorCallback(err) {
+	onStartStreamError(err) {
 		alert("Check microphone permissions");
 		console.error(err);
 		if (this.isUsingTestInterface) document.getElementById('micStatus').innerHTML = 'Not Allowed';
