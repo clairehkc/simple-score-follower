@@ -1,4 +1,5 @@
 let osmd;
+let scoreContainer;
 let noteEventDetector;
 let scoreParser;
 let scoreEventList = [];
@@ -14,6 +15,9 @@ function setup() {
 	scoreParser = new ScoreParser();
 
 	const scoreInput = document.getElementById("scoreInput");
+	scoreContainer = document.getElementById("scoreContainer");
+	osmd = new opensheetmusicdisplay.OpenSheetMusicDisplay(scoreContainer);
+	// scoreContainer.addEventListener("click", onScoreClick);
 	document.getElementById("scoreUploadButton").addEventListener("click", () => scoreInput.click());
 	document.getElementById("skipEvent").addEventListener("click", skipEvent);
 	document.getElementById("resetCursor").addEventListener("click", resetCursor);
@@ -39,19 +43,38 @@ function uploadScore() {
 }
 
 function renderScore(xmlDoc) {
-	const scoreContainer = document.getElementById("scoreContainer");
-	osmd = new opensheetmusicdisplay.OpenSheetMusicDisplay(scoreContainer);
 	const loadPromise = osmd.load(xmlDoc);
 
 	loadPromise.then(() => {
 	  osmd.render();
 	  scoreEventList = scoreParser.parse(osmd);
 	  osmd.cursor.reset();
-
+	  // console.log("osmd", osmd);
 	  const currentScoreEvent = scoreEventList[currentScoreIndex];
 	  noteEventDetector.setNextExpectedNoteEvent(currentScoreEvent.noteEventString, currentScoreEvent.scoreEventId);
 		noteEventDetector.startStream();
 	});
+}
+
+function onScoreClick(clickEvent) {
+	if (!osmd) return;
+  const clickLocation = new opensheetmusicdisplay.PointF2D(clickEvent.pageX, clickEvent.pageY);
+  const sheetLocation = getOSMDCoordinates(clickLocation);
+  // const absoluteLocation = getAbsolutePageCoordinates(sheetLocation);
+  const maxDist = new opensheetmusicdisplay.PointF2D(5, 5);
+  const nearestNote = osmd.GraphicSheet.GetNearestNote(sheetLocation, maxDist);
+}
+
+function getOSMDCoordinates(clickLocation) {
+  const sheetX = (clickLocation.x - scoreContainer.offsetLeft) / 10;
+  const sheetY = (clickLocation.y - scoreContainer.offsetTop) / 10;
+  return new opensheetmusicdisplay.PointF2D(sheetX, sheetY);
+}
+
+function getAbsolutePageCoordinates(sheetLocation) {
+  const x = (sheetLocation.x * 10 + scoreContainer.offsetLeft);
+  const y = (sheetLocation.y * 10 + scoreContainer.offsetTop);
+  return new opensheetmusicdisplay.PointF2D(x, y);
 }
 
 function onDetectorReady() {

@@ -37,7 +37,6 @@ class NoteEventDetector {
 	startStream() {
 		if (this.streamIsActive) return;
 		this.audioContext.resume();
-		console.log("this.mic", this.mic);
 		this.mic.start(this.startDetection.bind(this), this.onStartStreamError);
 		if (this.isUsingTestInterface) {
 			document.getElementById('micStatus').innerHTML = 'On';

@@ -30,7 +30,7 @@ class ChordDetector {
 	}
 
 	initializeAnalyzer(mic) {
-		this.analyzer = Meyda.default.createMeydaAnalyzer({
+		this.analyzer = Meyda.createMeydaAnalyzer({
 		  "audioContext": this.audioContext,
 		  "source": mic.mediaStream,
 		  "bufferSize": 512,
