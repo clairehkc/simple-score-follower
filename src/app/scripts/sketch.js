@@ -1,9 +1,11 @@
 let osmd;
 let scoreContainer;
 let noteEventDetector;
+let isDetectorReady = false;
 let scoreParser;
 let scoreEventList = [];
 let currentScoreIndex = 0;
+let startButton, stopButton;
 
 function setup() {
 	const audioContext = getAudioContext();
@@ -18,6 +20,12 @@ function setup() {
 	scoreContainer = document.getElementById("scoreContainer");
 	osmd = new opensheetmusicdisplay.OpenSheetMusicDisplay(scoreContainer);
 	// scoreContainer.addEventListener("click", onScoreClick);
+	startButton = document.getElementById("startNoteEventDetector");
+	stopButton = document.getElementById("stopNoteEventDetector");
+	startButton.addEventListener("click", startStream);
+	stopButton.addEventListener("click", stopStream);
+	startButton.disabled = true;
+	stopButton.disabled = true;
 	document.getElementById("scoreUploadButton").addEventListener("click", () => scoreInput.click());
 	document.getElementById("skipEvent").addEventListener("click", skipEvent);
 	document.getElementById("resetCursor").addEventListener("click", resetCursor);
@@ -52,7 +60,7 @@ function renderScore(xmlDoc) {
 	  // console.log("osmd", osmd);
 	  const currentScoreEvent = scoreEventList[currentScoreIndex];
 	  noteEventDetector.setNextExpectedNoteEvent(currentScoreEvent.noteEventString, currentScoreEvent.scoreEventId);
-		noteEventDetector.startStream();
+	  startButton.disabled = false;
 	});
 }
 
@@ -78,7 +86,23 @@ function getAbsolutePageCoordinates(sheetLocation) {
 }
 
 function onDetectorReady() {
+	if (noteEventDetector.isUsingTestInterface) return;
+	isDetectorReady = true;
 	osmd.cursor.show();
+}
+
+function startStream() {
+	noteEventDetector.startStream();
+	if (isDetectorReady) osmd.cursor.show();
+	startButton.disabled = true;
+	stopButton.disabled = false;
+}
+
+function stopStream() {
+	noteEventDetector.stopStream();
+	osmd.cursor.hide();
+	startButton.disabled = false;
+	stopButton.disabled = true;
 }
 
 function onFoundMatch(scoreEventId) {

@@ -11,11 +11,14 @@ class NoteEventDetector {
 		this.logTable = this.setUpLogTable();
 		if (document.getElementById("updateNoteEvent")) {
 			this.isUsingTestInterface = true;
+			this.micStatus = document.getElementById('micStatus');
+			this.startButton = document.getElementById("startStream");
+			this.stopButton = document.getElementById("stopStream");
+			this.startButton.addEventListener("click", this.startStream.bind(this));
+			this.stopButton.addEventListener("click", this.stopStream.bind(this));
+			this.startButton.disabled = true;
+			this.stopButton.disabled = true;
 			document.getElementById("updateNoteEvent").addEventListener("click", this.setNextExpectedNoteEvent.bind(this));
-			document.getElementById("start").addEventListener("click", this.startStream.bind(this));
-			document.getElementById("stop").addEventListener("click", this.stopStream.bind(this));
-			document.getElementById("start").disabled = true;
-			document.getElementById("stop").disabled = true;
 			document.getElementById("saveLog").addEventListener("click", this.saveLog.bind(this));
 			document.getElementById("clearLog").addEventListener("click", this.clearLog.bind(this));
 		}
@@ -31,7 +34,7 @@ class NoteEventDetector {
 		}
 		this.nextExpectedNoteEvent = new NoteEvent(noteEventString, scoreEventId);
 		if (this.mic.stream) this.startDetection();
-		if (this.isUsingTestInterface) document.getElementById("start").disabled = false;
+		if (this.isUsingTestInterface && this.startButton.disabled) this.startButton.disabled = false;
 	}
 
 	startStream() {
@@ -39,8 +42,8 @@ class NoteEventDetector {
 		this.audioContext.resume();
 		this.mic.start(this.startDetection.bind(this), this.onStartStreamError);
 		if (this.isUsingTestInterface) {
-			document.getElementById('micStatus').innerHTML = 'On';
-			document.getElementById("stop").disabled = false;
+			this.micStatus.innerHTML = 'On';
+			this.stopButton.disabled = false;
 		}
 		this.streamIsActive = true;
 	}
@@ -73,8 +76,10 @@ class NoteEventDetector {
 	onStartStreamError(err) {
 		alert("Check microphone permissions");
 		console.error(err);
-		if (this.isUsingTestInterface) document.getElementById('micStatus').innerHTML = 'Not Allowed';
-		this.streamIsActive = false;
+		if (this.isUsingTestInterface) {
+			this.micStatus.innerHTML = 'Not Allowed';
+			this.streamIsActive = false;
+		}
 	}
 
 	stopStream() {
@@ -85,8 +90,8 @@ class NoteEventDetector {
 		this.activeDetector = undefined;
 		this.streamIsActive = false;
 		if (this.isUsingTestInterface) {
-			document.getElementById('micStatus').innerHTML = 'Off';
-			document.getElementById("stop").disabled = true;
+			this.micStatus.innerHTML = 'Off';
+			this.stopButton.disabled = true;
 		}
 	}
 
