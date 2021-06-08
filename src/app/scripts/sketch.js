@@ -19,7 +19,7 @@ function setup() {
 	const scoreInput = document.getElementById("scoreInput");
 	scoreContainer = document.getElementById("scoreContainer");
 	osmd = new opensheetmusicdisplay.OpenSheetMusicDisplay(scoreContainer);
-	// scoreContainer.addEventListener("click", onScoreClick);
+	scoreContainer.addEventListener("click", onScoreClick);
 	startButton = document.getElementById("startNoteEventDetector");
 	stopButton = document.getElementById("stopNoteEventDetector");
 	startButton.addEventListener("click", startStream);
@@ -70,7 +70,8 @@ function onScoreClick(clickEvent) {
   const sheetLocation = getOSMDCoordinates(clickLocation);
   // const absoluteLocation = getAbsolutePageCoordinates(sheetLocation);
   const maxDist = new opensheetmusicdisplay.PointF2D(5, 5);
-  const nearestNote = osmd.GraphicSheet.GetNearestNote(sheetLocation, maxDist);
+  const nearestNote = osmd.GraphicSheet.GetNearestNote(sheetLocation, maxDist).sourceNote;
+  console.log("nearestNote", nearestNote);
 }
 
 function getOSMDCoordinates(clickLocation) {
