@@ -27,11 +27,16 @@ class NoteEventDetector {
 	}
 
 	setNextExpectedNoteEvent(noteEventString, scoreEventId) {
-		if (this.isUsingTestInterface) noteEventString = document.getElementById("noteEventInput").value;
+		if (this.isUsingTestInterface) {
+			noteEventString = document.getElementById("noteEventInput").value;
+			if (noteEventString) noteEventString = noteEventString.toUpperCase();
+		}
+
 		if (!noteEventString) {
 			alert("Enter an Event to Detect");
 			return;
 		}
+
 		this.nextExpectedNoteEvent = new NoteEvent(noteEventString, scoreEventId);
 		if (this.mic.stream) this.startDetection();
 		if (this.isUsingTestInterface && this.startButton.disabled) this.startButton.disabled = false;
