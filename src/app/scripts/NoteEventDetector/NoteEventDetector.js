@@ -43,6 +43,7 @@ class NoteEventDetector {
 		this.mic.start(this.startDetection.bind(this), this.onStartStreamError);
 		if (this.isUsingTestInterface) {
 			this.micStatus.innerHTML = 'On';
+			this.startButton.disabled = true;
 			this.stopButton.disabled = false;
 		}
 		this.streamIsActive = true;
@@ -91,8 +92,11 @@ class NoteEventDetector {
 		this.streamIsActive = false;
 		if (this.isUsingTestInterface) {
 			this.micStatus.innerHTML = 'Off';
+			this.startButton.disabled = false;
 			this.stopButton.disabled = true;
 		}
+		this.pitchDetector.detector = undefined;
+		this.chordDetector.analyzer = undefined;
 	}
 
 	setUpLogTable() {
