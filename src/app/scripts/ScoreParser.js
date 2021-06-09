@@ -18,12 +18,26 @@ class ScoreParser {
 			const notesUnderCursor = osmd.cursor.NotesUnderCursor();
 			if (notesUnderCursor.length === 1) {
 				const note = notesUnderCursor[0];
-				noteEventString = this.createNoteEventString(note) + (note.pitch.octave + 3).toString();
-				notesLength = 1;
+				if (note.pitch) {
+					noteEventString = this.createNoteEventString(note) + (note.pitch.Octave + 3).toString();
+					notesLength = 1;
+				} else {
+					noteEventString = "X";
+					notesLength = 0;
+				}
 			} else {
-				const noteStrings = notesUnderCursor.map(note => this.createNoteEventString(note)).filter(note => note !== "-1");
-				notesLength = noteStrings.length;
-				noteEventString = noteStrings.join("-");
+				const noteStrings = notesUnderCursor.map(note => this.createNoteEventString(note));
+				const filteredNoteStrings = noteStrings.filter(note => note !== "X");
+				notesLength = filteredNoteStrings.length;
+				if (notesLength === 0) {
+					noteEventString = "X";
+				} else if (notesLength === 1) {
+					const noteIndex = noteStrings.indexOf(filteredNoteStrings[0]);
+					const note = notesUnderCursor[noteIndex];
+					noteEventString = filteredNoteStrings[0] + (note.pitch.Octave + 3).toString();
+				} else {
+					noteEventString = noteStrings.join("-");	
+				}
 			}
 			const measureNumber = notesUnderCursor[0].sourceMeasure.measureNumber;
 			const scoreEvent = {
@@ -32,6 +46,7 @@ class ScoreParser {
 				measureNumber,
 				scoreEventId,
 			}
+
 			scoreEventList.push(scoreEvent);
 			if (this.logTable) this.logResult(scoreEvent);
 			scoreEventId++;
@@ -42,12 +57,12 @@ class ScoreParser {
 	}
 
 	createNoteEventString(note) {
-		if (!note.pitch) return "-1"; // probably a rest
+		if (!note.pitch) return "X"; // probably a rest
 		const osmdPitch = opensheetmusicdisplay.Pitch;
-		const accidentalType = opensheetmusicdisplay.AccidentalEnum[note.pitch.accidental];
+		const accidentalType = opensheetmusicdisplay.AccidentalEnum[note.pitch.Accidental];
 		const noteLetterList = ["C", "D", "E", "F", "G", "A", "B"];
 
-		let noteLetterString = osmdPitch.getNoteEnumString(note.pitch.fundamentalNote);
+		let noteLetterString = osmdPitch.getNoteEnumString(note.pitch.FundamentalNote);
 		let accidentalString = "";
 
 		const noteLetterIndex = noteLetterList.indexOf(noteLetterString);
