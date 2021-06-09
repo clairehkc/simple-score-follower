@@ -12,6 +12,7 @@ class ChordDetector {
 		this.isUsingTestInterface = isUsingTestInterface;
 
 		this.initializeChordToTemplateTable();
+		this.pitchClasses = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 	}
 
 	initializeChordToTemplateTable() {
@@ -44,54 +45,104 @@ class ChordDetector {
 	}
 
 	getChordCallback(features) {
-		const expectedChord = this.getChordForNoteEvent(this.nextExpectedNoteEvent);
-		if (!expectedChord) console.error("Invalid note event for chord detector");
-		if (this.isUsingTestInterface) document.getElementById('expectedChordValue').innerHTML = expectedChord;
+		// const expectedChord = this.getChordForNoteEvent(this.nextExpectedNoteEvent);
+		// const expectedChord = this.nextExpectedNoteEvent.noteEventString;
+		// if (!expectedChord) console.error("Invalid note event for chord detector");
+		// if (this.isUsingTestInterface) document.getElementById('expectedChordValue').innerHTML = expectedChord;
 		if (features.rms < 0.02) return; // loudness - can iterate on this to filter out overtones
-		const matchResult = this.determineMatch(expectedChord, features.chroma);
+		// const matchResult = this.determineMatch(expectedChord, features.chroma);
+		const matchResult = this.determineMatch(features.chroma);
 	}
 
-	determineMatch(expectedChord, detectedChroma) {
+	// determineMatch(expectedChord, detectedChroma) {
+	// 	if (this.isZeroVector(detectedChroma)) return;
+	// 	const chordGuessList = this.getChordGuessForDetectedChroma(detectedChroma, 2);
+	// 	const bestGuess = chordGuessList[0];
+	// 	// if expectedChord is found in the top n guesses, consider it a match
+	// 	const matchInGuesses = chordGuessList.find(guess => guess.label === expectedChord);
+	// 	const detectedChord = matchInGuesses && matchInGuesses.label || bestGuess.label;
+	// 	let matchResult = expectedChord === detectedChord;
+
+	// 	const truncatedChroma = detectedChroma.map(value => value.toFixed(2));
+
+	// 	if (matchResult) {
+	// 		// filter out results without a matching peak with the expected chord
+	// 		const expectedTemplate = this.chordToTemplateTable[expectedChord];
+	// 		const expectedPeakIndices = [];
+	// 		for (let i = 0; i < expectedTemplate.length; i++) {
+	// 			if (expectedTemplate[i] === 1) expectedPeakIndices.push(i);
+	// 		}
+	// 		const sortedChroma = detectedChroma.slice().sort();
+	// 		const detectedPeakIndices = sortedChroma.slice(9, 12).map(val => detectedChroma.indexOf(val)).sort();
+	// 		const hasMatchingPeak = expectedPeakIndices.find(peakIndex => detectedPeakIndices.includes(peakIndex));
+	// 		if (!hasMatchingPeak) {
+	// 			matchResult = false;
+	// 			console.log("no matching peak found");
+	// 		}
+	// 	}
+
+	// 	if (this.isUsingTestInterface) {
+	// 		document.getElementById('detectedChromaValue').innerHTML = truncatedChroma;
+	// 		document.getElementById('detectedChordValue').innerHTML = detectedChord;
+	// 		document.getElementById('chordMatchResult').innerHTML = matchResult;
+	// 	}
+
+	// 	if (matchResult) {
+	// 		this.matchCallback(this.nextExpectedNoteEvent.scoreEventId);
+	// 	} else {
+	// 		console.log("expectedChord, detectedChord", expectedChord, " | ", detectedChord);
+	// 	}
+	// 	this.logResult(expectedChord, truncatedChroma, detectedChord, matchResult);
+	// 	return matchResult;
+	// }
+
+	determineMatch(detectedChroma) {
 		if (this.isZeroVector(detectedChroma)) return;
-		const chordGuessList = this.getChordGuessForDetectedChroma(detectedChroma, 2);
-		const bestGuess = chordGuessList[0];
-		// if expectedChord is found in the top n guesses, consider it a match
-		const matchInGuesses = chordGuessList.find(guess => guess.label === expectedChord);
-		const detectedChord = matchInGuesses && matchInGuesses.label || bestGuess.label;
-		let matchResult = expectedChord === detectedChord;
 
-		const truncatedChroma = detectedChroma.map(value => value.toFixed(2));
+		const expectedNotes = [...new Set(this.nextExpectedNoteEvent.keys)];
+		const expectedIndices = expectedNotes.map(note => this.pitchClasses.indexOf(note));
+		console.log("expectedIndices", expectedIndices);
 
-		if (matchResult) {
-			// filter out results without a matching peak with the expected chord
-			const expectedTemplate = this.chordToTemplateTable[expectedChord];
-			const expectedPeakIndices = [];
-			for (let i = 0; i < expectedTemplate.length; i++) {
-				if (expectedTemplate[i] === 1) expectedPeakIndices.push(i);
-			}
-			const sortedChroma = detectedChroma.slice().sort();
-			const detectedPeakIndices = sortedChroma.slice(9, 12).map(val => detectedChroma.indexOf(val)).sort();
-			const hasMatchingPeak = expectedPeakIndices.find(peakIndex => detectedPeakIndices.includes(peakIndex));
-			if (!hasMatchingPeak) {
-				matchResult = false;
-				console.log("no matching peak found");
-			}
-		}
 
-		if (this.isUsingTestInterface) {
-			document.getElementById('detectedChromaValue').innerHTML = truncatedChroma;
-			document.getElementById('detectedChordValue').innerHTML = detectedChord;
-			document.getElementById('chordMatchResult').innerHTML = matchResult;
-		}
+		const sortedChroma = detectedChroma.slice().sort().reverse();
+		const detectedPeakIndices = sortedChroma.map(value => detectedChroma.indexOf(value));
+		console.log("detectedPeakIndices", detectedPeakIndices);
+
+		const chromaAtExpectedIndices = expectedIndices.map(index => detectedChroma[index]);
+		// console.log("chroma", chromaAtExpectedIndices);
+		const proTotal = chromaAtExpectedIndices.reduce((a, b) => a + b, 0);
+		const proAverage = proTotal / expectedIndices.length;
+
+		const unexpectedIndices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].filter(index => !expectedIndices.includes(index));
+		console.log("unexpectedIndices", unexpectedIndices);
+		const chromaAtUnexpectedIndices = unexpectedIndices.map(index => detectedChroma[index]);
+		const conTotal = chromaAtUnexpectedIndices.reduce((a, b) => a + b, 0);
+		const conAverage = conTotal / unexpectedIndices.length;
+
+		console.log("avg compare", proAverage, conAverage);
+
+		const matchResult = (proAverage > conAverage) && (proAverage > 0.9);
+
+
+		// const truncatedChroma = detectedChroma.map(value => value.toFixed(2));
+
+		// if (this.isUsingTestInterface) {
+		// 	document.getElementById('detectedChromaValue').innerHTML = truncatedChroma;
+		// 	document.getElementById('detectedChordValue').innerHTML = detectedChord;
+		// 	document.getElementById('chordMatchResult').innerHTML = matchResult;
+		// }
 
 		if (matchResult) {
 			this.matchCallback(this.nextExpectedNoteEvent.scoreEventId);
-		} else {
-			// console.log("expectedChord, detectedChord", expectedChord, " | ", detectedChord);
 		}
-		this.logResult(expectedChord, truncatedChroma, detectedChord, matchResult);
 		return matchResult;
+		// else {
+		// 	// console.log("expectedChord, detectedChord", expectedChord, " | ", detectedChord);
+		// }
+		// this.logResult(expectedChord, truncatedChroma, detectedChord, matchResult);
+		// return matchResult;
 	}
+
 
 	// determines the closest chord label for the score event
 	getChordForNoteEvent(noteEvent) {
@@ -121,7 +172,7 @@ class ChordDetector {
 				return -1;
 			} 
 		});
-		// still need to convert B#s to Cs, etc
+
 		return this.getChordForNoteEventHelper(keys.slice(), chordLabels);
 	}
 

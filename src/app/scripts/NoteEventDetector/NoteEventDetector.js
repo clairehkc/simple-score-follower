@@ -26,6 +26,16 @@ class NoteEventDetector {
 		this.chordDetector = new ChordDetector(audioContext, matchCallback, this.logTable, this.isUsingTestInterface);
 	}
 
+	addNoteEvent(noteEventString, scoreEventId) {
+		const noteEvent = new NoteEvent(noteEventString, scoreEventId);
+		// make a map of note events by id
+		if (noteEvent.isMonophonic) return;
+		const expectedNotes = noteEvent.keys;
+		const expectedIndices = expectedNotes.map(note => ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"].indexOf(note));
+		const expectedTemplate = [0,0,0,0,0,0,0,0,0,0,0,0].map((bucket, index) => (expectedIndices.includes(index)) ? 1 : 0);
+		this.chordDetector.templates[noteEvent.noteEventString] = expectedTemplate;
+	}
+
 	setNextExpectedNoteEvent(noteEventString, scoreEventId) {
 		if (this.isUsingTestInterface) {
 			noteEventString = document.getElementById("noteEventInput").value;
