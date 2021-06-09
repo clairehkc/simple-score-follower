@@ -5,7 +5,7 @@ let isDetectorReady = false;
 let scoreParser;
 let scoreEventList = [];
 let currentScoreIndex = 0;
-let startButton, stopButton;
+let startButton, stopButton, skipButton;
 
 function setup() {
 	const audioContext = getAudioContext();
@@ -20,14 +20,20 @@ function setup() {
 	scoreContainer = document.getElementById("scoreContainer");
 	osmd = new opensheetmusicdisplay.OpenSheetMusicDisplay(scoreContainer);
 	scoreContainer.addEventListener("click", onScoreClick);
+
 	startButton = document.getElementById("startNoteEventDetector");
 	stopButton = document.getElementById("stopNoteEventDetector");
+	skipButton = document.getElementById("skipEvent");
+
 	startButton.addEventListener("click", startStream);
 	stopButton.addEventListener("click", stopStream);
+	skipButton.addEventListener("click", skipEvent);
+
 	startButton.disabled = true;
 	stopButton.disabled = true;
+	skipButton.disabled = true;
+
 	document.getElementById("scoreUploadButton").addEventListener("click", () => scoreInput.click());
-	document.getElementById("skipEvent").addEventListener("click", skipEvent);
 	document.getElementById("resetCursor").addEventListener("click", resetCursor);
 	scoreInput.addEventListener("change", uploadScore);
 }
@@ -56,16 +62,18 @@ function renderScore(xmlDoc) {
 	loadPromise.then(() => {
 	  osmd.render();
 	  scoreEventList = scoreParser.parse(osmd);
+	  scoreEventList.forEach(scoreEvent => noteEventDetector.addNoteEvent(scoreEvent.noteEventString, scoreEvent.scoreEventId));
 	  osmd.cursor.reset();
 	  // console.log("osmd", osmd);
 	  const currentScoreEvent = scoreEventList[currentScoreIndex];
 	  noteEventDetector.setNextExpectedNoteEvent(currentScoreEvent.noteEventString, currentScoreEvent.scoreEventId);
 	  startButton.disabled = false;
+	  osmd.cursor.hide();
 	});
 }
 
 function onScoreClick(clickEvent) {
-	if (!osmd) return;
+	if (!osmd || osmd.cursor.hidden) return;
   const clickLocation = new opensheetmusicdisplay.PointF2D(clickEvent.pageX, clickEvent.pageY);
   const sheetLocation = getOSMDCoordinates(clickLocation);
   // const absoluteLocation = getAbsolutePageCoordinates(sheetLocation);
@@ -94,9 +102,9 @@ function onDetectorReady() {
 
 function startStream() {
 	noteEventDetector.startStream();
-	if (isDetectorReady) osmd.cursor.show();
 	startButton.disabled = true;
 	stopButton.disabled = false;
+	skipButton.disabled = false;
 }
 
 function stopStream() {
@@ -104,6 +112,7 @@ function stopStream() {
 	osmd.cursor.hide();
 	startButton.disabled = false;
 	stopButton.disabled = true;
+	skipButton.disabled = true;
 }
 
 function onFoundMatch(scoreEventId) {
