@@ -49,9 +49,11 @@ class ChordDetector {
 		// const expectedChord = this.nextExpectedNoteEvent.noteEventString;
 		// if (!expectedChord) console.error("Invalid note event for chord detector");
 		// if (this.isUsingTestInterface) document.getElementById('expectedChordValue').innerHTML = expectedChord;
-		if (features.rms < 0.02) return; // loudness - can iterate on this to filter out overtones
+		if (features.rms < 0.05) return; // loudness - can iterate on this to filter out overtones
+		console.log("rms", features.rms);
 		// const matchResult = this.determineMatch(expectedChord, features.chroma);
 		const matchResult = this.determineMatch(features.chroma);
+		
 	}
 
 	// determineMatch(expectedChord, detectedChroma) {
@@ -101,12 +103,12 @@ class ChordDetector {
 
 		const expectedNotes = [...new Set(this.nextExpectedNoteEvent.keys)];
 		const expectedIndices = expectedNotes.map(note => this.pitchClasses.indexOf(note));
-		console.log("expectedIndices", expectedIndices);
+		// console.log("expectedIndices", expectedIndices);
 
 
 		const sortedChroma = detectedChroma.slice().sort().reverse();
 		const detectedPeakIndices = sortedChroma.map(value => detectedChroma.indexOf(value));
-		console.log("detectedPeakIndices", detectedPeakIndices);
+		// console.log("detectedPeakIndices", detectedPeakIndices);
 
 		const chromaAtExpectedIndices = expectedIndices.map(index => detectedChroma[index]);
 		// console.log("chroma", chromaAtExpectedIndices);
@@ -114,12 +116,12 @@ class ChordDetector {
 		const proAverage = proTotal / expectedIndices.length;
 
 		const unexpectedIndices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].filter(index => !expectedIndices.includes(index));
-		console.log("unexpectedIndices", unexpectedIndices);
+		// console.log("unexpectedIndices", unexpectedIndices);
 		const chromaAtUnexpectedIndices = unexpectedIndices.map(index => detectedChroma[index]);
 		const conTotal = chromaAtUnexpectedIndices.reduce((a, b) => a + b, 0);
 		const conAverage = conTotal / unexpectedIndices.length;
 
-		console.log("avg compare", proAverage, conAverage);
+		// console.log("avg compare", proAverage, conAverage);
 
 		const matchResult = (proAverage > conAverage) && (proAverage > 0.9);
 
@@ -135,12 +137,11 @@ class ChordDetector {
 		if (matchResult) {
 			this.matchCallback(this.nextExpectedNoteEvent.scoreEventId);
 		}
-		return matchResult;
 		// else {
 		// 	// console.log("expectedChord, detectedChord", expectedChord, " | ", detectedChord);
 		// }
-		// this.logResult(expectedChord, truncatedChroma, detectedChord, matchResult);
-		// return matchResult;
+		this.logResult(expectedChord, truncatedChroma, matchResult);
+		return matchResult;
 	}
 
 
@@ -274,7 +275,7 @@ class ChordDetector {
 		newRow.setString('Input', this.nextExpectedNoteEvent.noteEventString);
 		newRow.setString('Expected', expectedChord);
 		newRow.setString('Detected', detectedChroma.toString());
-		newRow.setString('Guess', detectedChord);
+		// newRow.setString('Guess', detectedChord);
 		newRow.setString('Match', matchResult.toString());	
 	}
 }

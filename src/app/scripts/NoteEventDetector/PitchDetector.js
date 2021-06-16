@@ -45,17 +45,13 @@ class PitchDetector {
 
 	getPitchCallback(err, frequency) {
 	  if (frequency) {
-	  	if (this.nextExpectedNoteEvent.noteEventId === "X") {
-	  		this.matchCallback(this.nextExpectedNoteEvent.scoreEventId);
-	  	} else {
-	  		const expectedPitch = this.noteToFrequencyTable[this.nextExpectedNoteEvent.noteEventId];
-	  		if (!expectedPitch) {
-	  			console.error("Invalid note event for pitch detector");
-	  			return;
-	  		}
-	  		const matchResult = this.determineMatch(expectedPitch, frequency);
-	  		this.logResult(expectedPitch, frequency, matchResult);
+	  	const expectedPitch = this.noteToFrequencyTable[this.nextExpectedNoteEvent.noteEventId];
+	  	if (!expectedPitch) {
+	  		console.error("Invalid note event for pitch detector", this.nextExpectedNoteEvent.noteEventId);
+	  		return;
 	  	}
+	  	const matchResult = this.determineMatch(expectedPitch, frequency);
+	  	this.logResult(expectedPitch, frequency, matchResult);
 	  } else {
 	    if (this.isUsingTestInterface) document.getElementById('detectedPitchValue').innerHTML = 'No pitch detected';
 	  }
