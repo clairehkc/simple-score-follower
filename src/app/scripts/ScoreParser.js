@@ -12,7 +12,7 @@ class ScoreParser {
 		const scoreEventList = [];
 		let scoreEventId = 0;
 		let noteEventString;
-		let notesLength;
+		let numberOfNotes;
 
 		while (!osmd.cursor.iterator.EndReached) {
 			const notesUnderCursor = osmd.cursor.NotesUnderCursor();
@@ -20,18 +20,18 @@ class ScoreParser {
 				const note = notesUnderCursor[0];
 				if (note.pitch) {
 					noteEventString = this.createNoteEventString(note) + (note.pitch.Octave + 3).toString();
-					notesLength = 1;
+					numberOfNotes = 1;
 				} else {
 					noteEventString = "X";
-					notesLength = 0;
+					numberOfNotes = 0;
 				}
 			} else {
 				const noteStrings = notesUnderCursor.map(note => this.createNoteEventString(note));
 				const filteredNoteStrings = noteStrings.filter(note => note !== "X");
-				notesLength = filteredNoteStrings.length;
-				if (notesLength === 0) {
+				numberOfNotes = filteredNoteStrings.length;
+				if (numberOfNotes === 0) {
 					noteEventString = "X";
-				} else if (notesLength === 1) {
+				} else if (numberOfNotes === 1) {
 					const noteIndex = noteStrings.indexOf(filteredNoteStrings[0]);
 					const note = notesUnderCursor[noteIndex];
 					noteEventString = filteredNoteStrings[0] + (note.pitch.Octave + 3).toString();
@@ -40,9 +40,11 @@ class ScoreParser {
 				}
 			}
 			const measureNumber = notesUnderCursor[0].sourceMeasure.measureNumber;
+			const noteEventLength = notesUnderCursor[0].length && notesUnderCursor[0].length.realValue * 1000;
 			const scoreEvent = {
 				noteEventString,
-				notesLength,
+				noteEventLength,
+				numberOfNotes,
 				measureNumber,
 				scoreEventId,
 			}
@@ -106,7 +108,8 @@ class ScoreParser {
 	setUpLogTable() {
 		const table = new p5.Table();
 		table.addColumn('Event');
-		table.addColumn('Notes_Length');
+		table.addColumn('Event_Length');
+		table.addColumn('Complexity');
 		table.addColumn('Measure_Number');
 		table.addColumn('Score_Id');
 		return table;
@@ -121,12 +124,14 @@ class ScoreParser {
 		let newRow = this.logTable.addRow();
 		const {
 			noteEventString,
-			notesLength,
+			noteEventLength,
+			numberOfNotes,
 			measureNumber,
 			scoreEventId,
 		} = scoreEvent;
 		newRow.setString('Event', noteEventString);
-		newRow.setString('Notes_Length', notesLength.toString());
+		newRow.setString('Event_Length', noteEventLength.toString());
+		newRow.setString('Complexity', numberOfNotes.toString());
 		newRow.setString('Measure_Number', measureNumber.toString());
 		newRow.setString('Score_Id', scoreEventId.toString());
 	}

@@ -6,8 +6,8 @@ let scoreEventList = [];
 let currentScoreIndex = 0;
 let startButton, stopButton, skipButton;
 
-const MATCH_ACCEPT_DELAY = 300; // in ms , might need to adjust for same notes
-let lastMatchAcceptTime;
+let lastMatchLength = 0;
+let lastMatchAcceptTime = Date.now();
 
 function setup() {
 	const audioContext = getAudioContext();
@@ -69,7 +69,6 @@ function renderScore(xmlDoc) {
 	  scoreEventList.forEach(scoreEvent => noteEventDetector.addNoteEvent(scoreEvent.noteEventString, scoreEvent.scoreEventId));
 	  osmd.cursor.reset();
 	 	observeCursor();
-	  // console.log("osmd", osmd);
 	  const currentScoreEvent = scoreEventList[currentScoreIndex];
 	  noteEventDetector.setNextExpectedNoteEvent(currentScoreEvent.noteEventString, currentScoreEvent.scoreEventId);
 	  startButton.disabled = false;
@@ -103,7 +102,6 @@ function observeCursor() {
 	const cursorElement = document.getElementById("cursorImg-0");
 	const observer = new IntersectionObserver(function(entries) {
 		if (!osmd.cursor.hidden && entries[0].isIntersecting === false) {
-			console.log("offscreen", cursorElement.style.top);
 			window.scroll({
 			  top: parseFloat(cursorElement.style.top) - 10,
 			  behavior: 'smooth'
@@ -135,15 +133,17 @@ function stopStream() {
 	skipButton.disabled = true;
 }
 
-function onFoundMatch(scoreEventId) {
-	// account for rests
-	// if (lastMatchAcceptTime && (Date.now() - lastMatchAcceptTime < MATCH_ACCEPT_DELAY)) return;
+function onFoundMatch(scoreEventId, matchTime) {
+	console.log("time", matchTime - lastMatchAcceptTime, lastMatchLength);
+	if ((matchTime - lastMatchAcceptTime) < lastMatchLength) return;
 	if (scoreEventId === currentScoreIndex) {
 		currentScoreIndex++;
 		const currentScoreEvent = scoreEventList[currentScoreIndex];
 		osmd.cursor.next();
-		lastMatchAcceptTime = Date.now();
+
 		if (currentScoreEvent.noteEventString !== "X") {
+			lastMatchLength = currentScoreEvent.noteEventLength;
+			lastMatchAcceptTime = matchTime;
 			noteEventDetector.setNextExpectedNoteEvent(currentScoreEvent.noteEventString, currentScoreEvent.scoreEventId);
 		} else {
 			skipEvent();	

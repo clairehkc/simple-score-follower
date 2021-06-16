@@ -50,7 +50,6 @@ class ChordDetector {
 		// if (!expectedChord) console.error("Invalid note event for chord detector");
 		// if (this.isUsingTestInterface) document.getElementById('expectedChordValue').innerHTML = expectedChord;
 		if (features.rms < 0.05) return; // loudness - can iterate on this to filter out overtones
-		console.log("rms", features.rms);
 		// const matchResult = this.determineMatch(expectedChord, features.chroma);
 		const matchResult = this.determineMatch(features.chroma);
 		
@@ -135,7 +134,7 @@ class ChordDetector {
 		// }
 
 		if (matchResult) {
-			this.matchCallback(this.nextExpectedNoteEvent.scoreEventId);
+			this.matchCallback(this.nextExpectedNoteEvent.scoreEventId, Date.now());
 		}
 		// else {
 		// 	// console.log("expectedChord, detectedChord", expectedChord, " | ", detectedChord);

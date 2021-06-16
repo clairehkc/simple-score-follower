@@ -59,7 +59,7 @@ class PitchDetector {
 	}
 
 	determineMatch(expectedPitch, detectedPitch) {
-		const matchResult = Math.abs(expectedPitch - detectedPitch) < 10;
+		const matchResult = Math.abs(expectedPitch - detectedPitch) < 5;
 		if (this.isUsingTestInterface) {
 			document.getElementById('detectedPitchValue').innerHTML = detectedPitch;
 			document.getElementById('expectedPitchValue').innerHTML = expectedPitch;
@@ -67,7 +67,7 @@ class PitchDetector {
 		}
 
 		if (matchResult) {
-			this.matchCallback(this.nextExpectedNoteEvent.scoreEventId);
+			this.matchCallback(this.nextExpectedNoteEvent.scoreEventId, Date.now());
 		} else {
 			// console.log("expectedPitch, detectedPitch", this.nextExpectedNoteEvent.noteEventString, expectedPitch, " | ",  detectedPitch);
 		}
