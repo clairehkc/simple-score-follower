@@ -41,12 +41,14 @@ class ScoreParser {
 			}
 			const measureNumber = notesUnderCursor[0].sourceMeasure.measureNumber;
 			const noteEventLength = notesUnderCursor[0].length && notesUnderCursor[0].length.realValue * 1000;
+			const objectIds = notesUnderCursor.map(note => note.NoteToGraphicalNoteObjectId);
 			const scoreEvent = {
 				noteEventString,
 				noteEventLength,
 				numberOfNotes,
 				measureNumber,
 				scoreEventId,
+				objectIds,
 			}
 
 			scoreEventList.push(scoreEvent);
@@ -128,6 +130,7 @@ class ScoreParser {
 			numberOfNotes,
 			measureNumber,
 			scoreEventId,
+			objectIds,
 		} = scoreEvent;
 		newRow.setString('Event', noteEventString);
 		newRow.setString('Event_Length', noteEventLength.toString());

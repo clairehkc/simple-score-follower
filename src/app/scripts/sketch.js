@@ -4,6 +4,7 @@ let scoreParser, noteEventDetector;
 let isDetectorReady = false;
 let scoreEventList = [];
 let currentScoreIndex = 0;
+let onScoreClickStartingPositionObjectId;
 let startButton, stopButton, skipButton;
 
 let lastMatchLength = 0;
@@ -76,42 +77,6 @@ function renderScore(xmlDoc) {
 	});
 }
 
-function onScoreClick(clickEvent) {
-	if (!osmd || osmd.cursor.hidden) return;
-  const clickLocation = new opensheetmusicdisplay.PointF2D(clickEvent.pageX, clickEvent.pageY);
-  const sheetLocation = getOSMDCoordinates(clickLocation);
-  // const absoluteLocation = getAbsolutePageCoordinates(sheetLocation);
-  const maxDist = new opensheetmusicdisplay.PointF2D(5, 5);
-  const nearestNote = osmd.GraphicSheet.GetNearestNote(sheetLocation, maxDist).sourceNote;
-  console.log("nearestNote", nearestNote);
-}
-
-function getOSMDCoordinates(clickLocation) {
-  const sheetX = (clickLocation.x - scoreContainer.offsetLeft) / 10;
-  const sheetY = (clickLocation.y - scoreContainer.offsetTop) / 10;
-  return new opensheetmusicdisplay.PointF2D(sheetX, sheetY);
-}
-
-function getAbsolutePageCoordinates(sheetLocation) {
-  const x = (sheetLocation.x * 10 + scoreContainer.offsetLeft);
-  const y = (sheetLocation.y * 10 + scoreContainer.offsetTop);
-  return new opensheetmusicdisplay.PointF2D(x, y);
-}
-
-function observeCursor() {
-	const cursorElement = document.getElementById("cursorImg-0");
-	const observer = new IntersectionObserver(function(entries) {
-		if (!osmd.cursor.hidden && entries[0].isIntersecting === false) {
-			window.scroll({
-			  top: parseFloat(cursorElement.style.top) - 10,
-			  behavior: 'smooth'
-			});
-		}
-	}, { threshold: [1] });
-
-	observer.observe(cursorElement);
-}
-
 function onDetectorReady() {
 	if (noteEventDetector.isUsingTestInterface) return;
 	isDetectorReady = true;
@@ -134,7 +99,6 @@ function stopStream() {
 }
 
 function onFoundMatch(scoreEventId, matchTime) {
-	console.log("time", matchTime - lastMatchAcceptTime, lastMatchLength);
 	if ((matchTime - lastMatchAcceptTime) < lastMatchLength) return;
 	if (scoreEventId === currentScoreIndex) {
 		currentScoreIndex++;
@@ -157,10 +121,85 @@ function skipEvent() {
 	onFoundMatch(currentScoreIndex);
 }
 
+function observeCursor() {
+	const cursorElement = document.getElementById("cursorImg-0");
+	const observer = new IntersectionObserver(function(entries) {
+		if (!osmd.cursor.hidden && entries[0].isIntersecting === false) {
+			window.scroll({
+			  top: parseFloat(cursorElement.style.top) - 10,
+			  behavior: 'smooth'
+			});
+		}
+	}, { threshold: [1] });
+
+	observer.observe(cursorElement);
+}
+
+function getOSMDCoordinates(clickLocation) {
+  const sheetX = (clickLocation.x - scoreContainer.offsetLeft) / 10;
+  const sheetY = (clickLocation.y - scoreContainer.offsetTop) / 10;
+  return new opensheetmusicdisplay.PointF2D(sheetX, sheetY);
+}
+
+function onScoreClick(clickEvent) {
+	if (!osmd || osmd.cursor.hidden) return;
+  const clickLocation = new opensheetmusicdisplay.PointF2D(clickEvent.pageX, clickEvent.pageY);
+  const sheetLocation = getOSMDCoordinates(clickLocation);
+  const maxDist = new opensheetmusicdisplay.PointF2D(5, 5);
+  const nearestNote = osmd.GraphicSheet.GetNearestNote(sheetLocation, maxDist).sourceNote;
+  const nearestNoteObjectId = nearestNote.NoteToGraphicalNoteObjectId;
+  if (nearestNoteObjectId) {
+  	const notesUnderCursor = osmd.cursor.NotesUnderCursor();
+  	onScoreClickStartingPositionObjectId = notesUnderCursor[0].NoteToGraphicalNoteObjectId;
+  	updateCursorPosition(nearestNoteObjectId, true);
+  }
+}
+
+function updateCursorPosition(nearestNoteObjectId, atStartingPosition = false) {
+	const notesUnderCursor = osmd.cursor.NotesUnderCursor();
+	const currentScoreEventObjectIds = notesUnderCursor.map(note => note.NoteToGraphicalNoteObjectId);
+
+	if (!atStartingPosition && currentScoreEventObjectIds.includes(onScoreClickStartingPositionObjectId)) {
+		console.error("No matching note found");
+		return;
+	}
+
+	if (currentScoreEventObjectIds.includes(nearestNoteObjectId)) {
+		if (atStartingPosition) return;
+		osmd.cursor.show();
+		const scoreEvent = scoreEventList.find(event => event.objectIds.includes(nearestNoteObjectId));
+		updateScorePosition(scoreEventList.indexOf(scoreEvent));
+		return;
+	}
+
+	if (atStartingPosition) osmd.cursor.hide();
+
+	if (osmd.cursor.iterator.EndReached) {
+		osmd.cursor.reset();
+	} else {
+		osmd.cursor.next();
+	}
+	updateCursorPosition(nearestNoteObjectId);
+}
+
 function resetCursor() {
 	osmd.cursor.reset();
-	currentScoreIndex = 0;
-	const currentScoreEvent = scoreEventList[currentScoreIndex];
+	updateScorePosition(0);
+}
+
+function updateScorePosition(index) {
+	if (index == - 1) {
+		console.error("Attempted to update score position to invalid index");
+		return;
+	}
+
+	const currentScoreEvent = scoreEventList[index];
+	if (!currentScoreEvent) {
+		console.error("No score event at index", index);
+		return;
+	}
+
+	currentScoreIndex = index;
 	noteEventDetector.setNextExpectedNoteEvent(currentScoreEvent.noteEventString, currentScoreEvent.scoreEventId);
 }
 
