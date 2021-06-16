@@ -30,15 +30,23 @@
       padding-bottom: 12px;
     }
 
+    #headerButtons {
+      position: -webkit-sticky;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
     #scoreContainer {
       width: 100%;
+      z-index: 0;
     }
 
   </style>
 </head>
 
 <body>
-  <div class="pageSection">
+  <div class="pageSection" id="headerButtons">
     <input type="file" id="scoreInput" accept="text/xml, .musicxml" style="display:none" />
     <button type="button" id="scoreUploadButton">Upload</button>
     <button type="button" id="startNoteEventDetector">Start Stream</button>
@@ -47,7 +55,7 @@
     <button type="button" id="resetCursor">Reset</button>
     <button type="button" id="saveParserLog">Save Parser Log</button>
   </div>
-  <div id="pageSection">
+  <div class="pageSection">
     <div id="scoreContainer"></div>
   </div>
 </body>
