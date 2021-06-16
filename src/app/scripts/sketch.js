@@ -1,11 +1,13 @@
 let osmd;
 let scoreContainer;
-let noteEventDetector;
+let scoreParser, noteEventDetector;
 let isDetectorReady = false;
-let scoreParser;
 let scoreEventList = [];
 let currentScoreIndex = 0;
 let startButton, stopButton, skipButton;
+
+const MATCH_ACCEPT_DELAY = 300; // in ms , might need to adjust for same notes
+let lastMatchAcceptTime;
 
 function setup() {
 	const audioContext = getAudioContext();
@@ -39,6 +41,8 @@ function setup() {
 }
 
 function uploadScore() {
+	if (noteEventDetector.streamIsActive) stopStream();
+
 	const reader = new FileReader();
 
 	const onUploadScore = (xmlDoc) => {
@@ -64,6 +68,7 @@ function renderScore(xmlDoc) {
 	  scoreEventList = scoreParser.parse(osmd);
 	  scoreEventList.forEach(scoreEvent => noteEventDetector.addNoteEvent(scoreEvent.noteEventString, scoreEvent.scoreEventId));
 	  osmd.cursor.reset();
+	 	observeCursor();
 	  // console.log("osmd", osmd);
 	  const currentScoreEvent = scoreEventList[currentScoreIndex];
 	  noteEventDetector.setNextExpectedNoteEvent(currentScoreEvent.noteEventString, currentScoreEvent.scoreEventId);
@@ -94,6 +99,21 @@ function getAbsolutePageCoordinates(sheetLocation) {
   return new opensheetmusicdisplay.PointF2D(x, y);
 }
 
+function observeCursor() {
+	const cursorElement = document.getElementById("cursorImg-0");
+	const observer = new IntersectionObserver(function(entries) {
+		if (!osmd.cursor.hidden && entries[0].isIntersecting === false) {
+			console.log("offscreen", cursorElement.style.top);
+			window.scroll({
+			  top: parseFloat(cursorElement.style.top) - 10,
+			  behavior: 'smooth'
+			});
+		}
+	}, { threshold: [1] });
+
+	observer.observe(cursorElement);
+}
+
 function onDetectorReady() {
 	if (noteEventDetector.isUsingTestInterface) return;
 	isDetectorReady = true;
@@ -116,11 +136,18 @@ function stopStream() {
 }
 
 function onFoundMatch(scoreEventId) {
+	// account for rests
+	// if (lastMatchAcceptTime && (Date.now() - lastMatchAcceptTime < MATCH_ACCEPT_DELAY)) return;
 	if (scoreEventId === currentScoreIndex) {
 		currentScoreIndex++;
 		const currentScoreEvent = scoreEventList[currentScoreIndex];
-		noteEventDetector.setNextExpectedNoteEvent(currentScoreEvent.noteEventString, currentScoreEvent.scoreEventId);
 		osmd.cursor.next();
+		lastMatchAcceptTime = Date.now();
+		if (currentScoreEvent.noteEventString !== "X") {
+			noteEventDetector.setNextExpectedNoteEvent(currentScoreEvent.noteEventString, currentScoreEvent.scoreEventId);
+		} else {
+			skipEvent();	
+		}
 	} else {
 		if (!noteEventDetector.isUsingTestInterface) console.error("Received out of order match response from NoteEventDetector");
 	}
