@@ -43,6 +43,7 @@ function setup() {
 
 function uploadScore() {
 	if (noteEventDetector.streamIsActive) stopStream();
+	noteEventDetector.reset();
 
 	const reader = new FileReader();
 
