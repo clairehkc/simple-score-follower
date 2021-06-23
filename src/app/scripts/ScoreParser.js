@@ -36,7 +36,7 @@ class ScoreParser {
 					const note = notesUnderCursor[noteIndex];
 					noteEventString = filteredNoteStrings[0] + (note.pitch.Octave + 3).toString();
 				} else {
-					noteEventString = noteStrings.join("-");	
+					noteEventString = filteredNoteStrings.join("-");	
 				}
 			}
 			const measureNumber = notesUnderCursor[0].sourceMeasure.measureNumber;
