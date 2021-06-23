@@ -46,19 +46,45 @@ class ChordDetector {
 
 	getChordCallback(features) {
 		// const expectedChord = this.getChordForNoteEvent(this.nextExpectedNoteEvent);
-		// const expectedChord = this.nextExpectedNoteEvent.noteEventString;
-		// if (!expectedChord) console.error("Invalid note event for chord detector");
+		const expectedChord = this.nextExpectedNoteEvent.noteEventString;
+		if (!expectedChord) console.error("Invalid note event for chord detector");
 		// if (this.isUsingTestInterface) document.getElementById('expectedChordValue').innerHTML = expectedChord;
-		if (features.rms < 0.05) return; // loudness - can iterate on this to filter out overtones
+		if (features.rms < 0.01) return; // loudness - can iterate on this to filter out overtones
 		// const matchResult = this.determineMatch(expectedChord, features.chroma);
 		const matchResult = this.determineMatch(features.chroma);
-		
 	}
 
+	// ** distance check only
 	// determineMatch(expectedChord, detectedChroma) {
 	// 	if (this.isZeroVector(detectedChroma)) return;
-	// 	const chordGuessList = this.getChordGuessForDetectedChroma(detectedChroma, 2);
+
+	// 	const truncatedChroma = detectedChroma.map(value => value.toFixed(2));
+
+	// 	const distance = this.getVectorDistance(this.nextExpectedNoteEvent.chordTemplate, detectedChroma);
+	// 	const matchResult = distance < 3;
+	// 	console.log(this.nextExpectedNoteEvent.chordTemplate, " | ", truncatedChroma, distance);
+
+	// 	// if (this.isUsingTestInterface) {
+	// 	// 	document.getElementById('detectedChromaValue').innerHTML = truncatedChroma;
+	// 	// 	document.getElementById('detectedChordValue').innerHTML = detectedChord;
+	// 	// 	document.getElementById('chordMatchResult').innerHTML = matchResult;
+	// 	// }
+
+	// 	if (matchResult) {
+	// 		this.matchCallback(this.nextExpectedNoteEvent.scoreEventId);
+	// 	} else {
+	// 		// console.log("expectedChord, detectedChord, distance", expectedChord, " | ", detectedChord, distance);
+	// 	}
+	// 	this.logResult(expectedChord, truncatedChroma, detectedChord, matchResult);
+	// 	return matchResult;
+	// }
+
+	// ** templates
+	// determineMatch(expectedChord, detectedChroma) {
+	// 	if (this.isZeroVector(detectedChroma)) return;
+	// 	const chordGuessList = this.getChordGuessForDetectedChroma(detectedChroma, 10);
 	// 	const bestGuess = chordGuessList[0];
+	// 	console.log("chordGuessList", chordGuessList);
 	// 	// if expectedChord is found in the top n guesses, consider it a match
 	// 	const matchInGuesses = chordGuessList.find(guess => guess.label === expectedChord);
 	// 	const detectedChord = matchInGuesses && matchInGuesses.label || bestGuess.label;
@@ -97,36 +123,59 @@ class ChordDetector {
 	// 	return matchResult;
 	// }
 
+	// ** pro vs con check
 	determineMatch(detectedChroma) {
 		if (this.isZeroVector(detectedChroma)) return;
 
 		const expectedNotes = [...new Set(this.nextExpectedNoteEvent.keys)];
 		const expectedIndices = expectedNotes.map(note => this.pitchClasses.indexOf(note));
+		const expectedIndicesAndNeighbors = expectedIndices.slice();
 		// console.log("expectedIndices", expectedIndices);
+		const groups = [];
+		for (let i = 0; i < expectedIndices.length; i++) {
+			const expectedIndex = expectedIndices[i];
+			const leftNeighborIndex = (expectedIndex > 0) ? (expectedIndex - 1) : 11;
+			const rightNeighborIndex = (expectedIndex < 11) ? (expectedIndex + 1) : 0;
+			if (!expectedIndicesAndNeighbors.includes(leftNeighborIndex)) expectedIndicesAndNeighbors.push(leftNeighborIndex);
+			if (!expectedIndicesAndNeighbors.includes(rightNeighborIndex)) expectedIndicesAndNeighbors.push(rightNeighborIndex);
+			groups.push([leftNeighborIndex, expectedIndex, rightNeighborIndex]);
+		}
+		// console.log("expectedIndicesAndNeighbors", expectedIndicesAndNeighbors);
 
-
-		const sortedChroma = detectedChroma.slice().sort().reverse();
-		const detectedPeakIndices = sortedChroma.map(value => detectedChroma.indexOf(value));
-		// console.log("detectedPeakIndices", detectedPeakIndices);
-
-		const chromaAtExpectedIndices = expectedIndices.map(index => detectedChroma[index]);
+		const chromaAtExpectedIndices = expectedIndicesAndNeighbors.map(index => detectedChroma[index]);
 		// console.log("chroma", chromaAtExpectedIndices);
 		const proTotal = chromaAtExpectedIndices.reduce((a, b) => a + b, 0);
-		const proAverage = proTotal / expectedIndices.length;
+		const proAverage = proTotal / expectedIndicesAndNeighbors.length;
 
-		const unexpectedIndices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].filter(index => !expectedIndices.includes(index));
+		const groupAverages = groups.map(group => {
+			const groupChroma = group.map(index => detectedChroma[index]);
+			const groupTotal = groupChroma.reduce((a, b) => a + b, 0);
+			return groupTotal / group.length;
+		});
+		console.log("groupAverages", groupAverages);
+
+		const unexpectedIndices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].filter(index => !expectedIndicesAndNeighbors.includes(index));
 		// console.log("unexpectedIndices", unexpectedIndices);
-		const chromaAtUnexpectedIndices = unexpectedIndices.map(index => detectedChroma[index]);
-		const conTotal = chromaAtUnexpectedIndices.reduce((a, b) => a + b, 0);
-		const conAverage = conTotal / unexpectedIndices.length;
+		
+		let matchResult;
 
-		// console.log("avg compare", proAverage, conAverage);
+		if (unexpectedIndices.length !== 0) {
+			const chromaAtUnexpectedIndices = unexpectedIndices.map(index => detectedChroma[index]);
+			const conTotal = chromaAtUnexpectedIndices.reduce((a, b) => a + b, 0);
+			const conAverage = conTotal / unexpectedIndices.length;
+			console.log("avg compare diff", proAverage, conAverage, proAverage - conAverage);
+			// matchResult = (proAverage > conAverage) && (proAverage > 0.80) && (conAverage < 0.75);
+			const hasMoreThanTwoNotes = this.nextExpectedNoteEvent.keys.length > 2;
+			const diffAllowance = hasMoreThanTwoNotes ? 0.05 : 0.07;
+			const proAverageRequirement = 0.8;
+			matchResult = (proAverage > proAverageRequirement) && (proAverage - conAverage > diffAllowance) && groupAverages.every(average => average > proAverage - 0.2);
+		} else {
+			matchResult = true;
+		}
 
-		const matchResult = (proAverage > conAverage) && (proAverage > 0.9);
-
-
-		// const truncatedChroma = detectedChroma.map(value => value.toFixed(2));
-
+		const chromaLabels = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+		const truncatedChroma = detectedChroma.map((value, index) => chromaLabels[index] + ": " + value.toFixed(2));
+		console.log('chroma', truncatedChroma);
 		// if (this.isUsingTestInterface) {
 		// 	document.getElementById('detectedChromaValue').innerHTML = truncatedChroma;
 		// 	document.getElementById('detectedChordValue').innerHTML = detectedChord;
@@ -137,9 +186,9 @@ class ChordDetector {
 			this.matchCallback(this.nextExpectedNoteEvent.scoreEventId, Date.now());
 		}
 		// else {
-		// 	// console.log("expectedChord, detectedChord", expectedChord, " | ", detectedChord);
+			// console.log("expectedChord, detectedChord", expectedChord, " | ", detectedChord);
 		// }
-		this.logResult(expectedChord, truncatedChroma, matchResult);
+		this.logResult(this.nextExpectedNoteEvent.noteEventString, truncatedChroma, matchResult);
 		return matchResult;
 	}
 
@@ -268,11 +317,21 @@ class ChordDetector {
 		this.isActive = false;
 	}
 
-	logResult(expectedChord, detectedChroma, detectedChord, matchResult) {
+	// logResult(expectedChord, detectedChroma, detectedChord, matchResult) {
+	// 	let newRow = this.logTable.addRow();
+	// 	newRow.setString('Type', 'Chord');
+	// 	newRow.setString('Input', this.nextExpectedNoteEvent.noteEventString);
+	// 	newRow.setString('Expected', expectedChord);
+	// 	newRow.setString('Detected', detectedChroma.toString());
+	// 	newRow.setString('Guess', detectedChord);
+	// 	newRow.setString('Match', matchResult.toString());	
+	// }
+
+	logResult(detectedChroma, matchResult) {
 		let newRow = this.logTable.addRow();
 		newRow.setString('Type', 'Chord');
 		newRow.setString('Input', this.nextExpectedNoteEvent.noteEventString);
-		newRow.setString('Expected', expectedChord);
+		// newRow.setString('Expected', expectedChord);
 		newRow.setString('Detected', detectedChroma.toString());
 		// newRow.setString('Guess', detectedChord);
 		newRow.setString('Match', matchResult.toString());	

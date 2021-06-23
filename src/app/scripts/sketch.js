@@ -102,6 +102,7 @@ function stopStream() {
 function onFoundMatch(scoreEventId, matchTime) {
 	if ((matchTime - lastMatchAcceptTime) < lastMatchLength) return;
 	if (scoreEventId === currentScoreIndex) {
+		if (currentScoreIndex === scoreEventList.length - 1) return;
 		currentScoreIndex++;
 		const currentScoreEvent = scoreEventList[currentScoreIndex];
 		osmd.cursor.next();
@@ -114,7 +115,7 @@ function onFoundMatch(scoreEventId, matchTime) {
 			skipEvent();	
 		}
 	} else {
-		if (!noteEventDetector.isUsingTestInterface) console.error("Received out of order match response from NoteEventDetector");
+		if (!noteEventDetector.isUsingTestInterface) console.error("Received out of order match response from NoteEventDetector for scoreEventId: ", scoreEventId);
 	}
 }
 
