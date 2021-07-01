@@ -105,7 +105,7 @@ class ChordDetector {
 		if (matchResult) {
 			this.matchCallback(this.nextExpectedNoteEvent.scoreEventId);
 		} else {
-			console.log("expectedChord, detectedChord", expectedChord, " | ", detectedChord);
+			// console.log("expectedChord, detectedChord", expectedChord, " | ", detectedChord);
 		}
 		this.logResultTemplate(expectedChord, truncatedChroma, detectedChord, matchResult);
 		return matchResult;

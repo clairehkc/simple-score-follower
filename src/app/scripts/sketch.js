@@ -7,9 +7,6 @@ let currentScoreIndex = 0;
 let onScoreClickStartingPositionObjectId;
 let startButton, stopButton, skipButton;
 
-let lastMatchLength = 0;
-let lastMatchAcceptTime = Date.now();
-
 function setup() {
 	const audioContext = getAudioContext();
 	const audioInput = new p5.AudioIn();
@@ -100,7 +97,6 @@ function stopStream() {
 }
 
 function onFoundMatch(scoreEventId, matchTime) {
-	if ((matchTime - lastMatchAcceptTime) < lastMatchLength) return;
 	if (scoreEventId === currentScoreIndex) {
 		if (currentScoreIndex === scoreEventList.length - 1) return;
 		currentScoreIndex++;
@@ -108,8 +104,6 @@ function onFoundMatch(scoreEventId, matchTime) {
 		osmd.cursor.next();
 
 		if (currentScoreEvent.noteEventString !== "X") {
-			lastMatchLength = currentScoreEvent.noteEventLength;
-			lastMatchAcceptTime = matchTime;
 			noteEventDetector.setNextExpectedNoteEvent(currentScoreEvent.noteEventString, currentScoreEvent.scoreEventId);
 		} else {
 			skipEvent();	
