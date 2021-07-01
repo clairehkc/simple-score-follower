@@ -163,12 +163,8 @@ class ChordDetector {
 		const chromaLabels = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 		const truncatedChroma = detectedChroma.map((value, index) => chromaLabels[index] + ": " + value.toFixed(2));
 
-		if (matchResult) {
-			this.matchCallback(this.nextExpectedNoteEvent.scoreEventId, Date.now());
-		}
-		// else {
-			// console.log("expectedChord, detectedChord", expectedChord, " | ", detectedChord);
-		// }
+		this.matchCallback(this.nextExpectedNoteEvent.scoreEventId, matchResult);
+		// if (!matchResult) console.log("expectedChord, detectedChord", expectedChord, " | ", detectedChord);
 
 		if (this.isUsingTestInterface) {
 			document.getElementById('detectedChromaValue').innerHTML = truncatedChroma;

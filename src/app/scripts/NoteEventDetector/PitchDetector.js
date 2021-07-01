@@ -5,6 +5,7 @@ class PitchDetector {
 		this.readyCallback = readyCallback;
 		this.matchCallback = matchCallback;
 		this.isActive = false;
+		this.isAttemptingRecovery = false;
 		this.detector;
 		this.nextExpectedNoteEvent;
 		this.noteToFrequencyTable = {};
@@ -45,6 +46,17 @@ class PitchDetector {
 
 	getPitchCallback(err, frequency) {
 	  if (frequency) {
+
+	  	if (this.isAttemptingRecovery) {
+	  		console.log("isAttemptingRecovery");
+	  		// keep attempting until cleared or heard all 3 notes
+	  		// const nextExpectedMonophonicPitch = this.noteToFrequencyTable[this.nextExpectedMonophonicSequence.noteEventId];
+	  		// if (!nextExpectedMonophonicPitch) {
+	  		// 	console.error("Invalid note event for pitch detector", this.nextExpectedMonophonicSequence.noteEventId);
+	  		// 	return;
+	  		// }
+	  	}
+
 	  	const expectedPitch = this.noteToFrequencyTable[this.nextExpectedNoteEvent.noteEventId];
 	  	if (!expectedPitch) {
 	  		console.error("Invalid note event for pitch detector", this.nextExpectedNoteEvent.noteEventId);
@@ -66,11 +78,8 @@ class PitchDetector {
 			document.getElementById('pitchMatchResult').innerHTML = matchResult;	
 		}
 
-		if (matchResult) {
-			this.matchCallback(this.nextExpectedNoteEvent.scoreEventId, Date.now());
-		} else {
-			// console.log("expectedPitch, detectedPitch", this.nextExpectedNoteEvent.noteEventString, expectedPitch, " | ",  detectedPitch);
-		}
+		this.matchCallback(this.nextExpectedNoteEvent.scoreEventId, matchResult);
+		// if (!matchResult) console.log("expectedPitch, detectedPitch", this.nextExpectedNoteEvent.noteEventString, expectedPitch, " | ",  detectedPitch);
 		return matchResult	
 	}
 

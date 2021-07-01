@@ -87,8 +87,16 @@ class NoteEventDetector {
 				this.activeDetector = "CHORD";
 			}
 		}
-		console.log("activeDetector", this.activeDetector);
 		if (this.isUsingTestInterface) document.getElementById('activeDetector').innerHTML = this.activeDetector;
+	}
+
+	attemptRecovery(index) {
+		console.log("attemptRecovery", index);
+		const nextExpectedMonophonicSequence = [];
+		this.pitchDetector.isAttemptingRecovery = true;
+		if (this.activeDetector === "CHORD") {
+			this.pitchDetector.startPitchDetection();
+		}
 	}
 
 	onStartStreamError(err) {
