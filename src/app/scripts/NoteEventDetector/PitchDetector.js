@@ -1,7 +1,8 @@
 class PitchDetector {
-	constructor(audioContext, readyCallback, matchCallback, logTable, isUsingTestInterface) {
+	constructor(audioContext, getRms, readyCallback, matchCallback, logTable, isUsingTestInterface) {
 		this.audioContext = audioContext;
 		this.modelUrl = 'https://cdn.jsdelivr.net/gh/ml5js/ml5-data-and-models/models/pitch-detection/crepe/';
+		this.getRms = getRms;
 		this.readyCallback = readyCallback;
 		this.matchCallback = matchCallback;
 		this.isActive = false;
@@ -45,8 +46,7 @@ class PitchDetector {
 	}
 
 	getPitchCallback(err, frequency) {
-	  if (frequency) {
-
+	  if (frequency && this.getRms() > 0.003) {
 	  	if (this.isAttemptingRecovery) {
 	  		console.log("isAttemptingRecovery");
 	  		// keep attempting until cleared or heard all 3 notes
@@ -55,6 +55,13 @@ class PitchDetector {
 	  		// 	console.error("Invalid note event for pitch detector", this.nextExpectedMonophonicSequence.noteEventId);
 	  		// 	return;
 	  		// }
+	  		// if (recovered) this.isAttemptingRecovery = false;
+	  		// this.matchCallback(this.nextExpectedNoteEvent.scoreEventId, matchResult, Date.now());
+	  	}
+
+	  	if (!this.isActive) {
+	  		this.getPitch();
+	  		return;
 	  	}
 
 	  	const expectedPitch = this.noteToFrequencyTable[this.nextExpectedNoteEvent.noteEventId];
@@ -67,7 +74,7 @@ class PitchDetector {
 	  } else {
 	    if (this.isUsingTestInterface) document.getElementById('detectedPitchValue').innerHTML = 'No pitch detected';
 	  }
-	  if (this.isActive) this.getPitch();
+	  this.getPitch();
 	}
 
 	determineMatch(expectedPitch, detectedPitch) {
@@ -81,6 +88,14 @@ class PitchDetector {
 		this.matchCallback(this.nextExpectedNoteEvent.scoreEventId, matchResult, Date.now());
 		// if (!matchResult) console.log("expectedPitch, detectedPitch", this.nextExpectedNoteEvent.noteEventString, expectedPitch, " | ",  detectedPitch);
 		return matchResult	
+	}
+
+	activate() {
+		this.isActive = true;
+	}
+
+	deactivate() {
+		this.isActive = false;
 	}
 
 	stop() {

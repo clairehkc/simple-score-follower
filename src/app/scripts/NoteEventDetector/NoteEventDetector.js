@@ -5,6 +5,7 @@ class NoteEventDetector {
 		this.streamIsActive = false;
 		this.isUsingTestInterface = false;
 		this.noteEventMap = {};
+		this.rms;
 
 		noCanvas();
 		this.audioContext = audioContext;
@@ -23,8 +24,8 @@ class NoteEventDetector {
 			document.getElementById("saveLog").addEventListener("click", this.saveLog.bind(this));
 			document.getElementById("clearLog").addEventListener("click", this.clearLog.bind(this));
 		}
-		this.pitchDetector = new PitchDetector(audioContext, readyCallback, matchCallback, this.logTable, this.isUsingTestInterface);
-		this.chordDetector = new ChordDetector(audioContext, matchCallback, this.logTable, this.isUsingTestInterface);
+		this.pitchDetector = new PitchDetector(audioContext, this.getRms.bind(this), readyCallback, matchCallback, this.logTable, this.isUsingTestInterface);
+		this.chordDetector = new ChordDetector(audioContext, this.setRms.bind(this), matchCallback, this.logTable, this.isUsingTestInterface);
 	}
 
 	reset() {
@@ -69,34 +70,45 @@ class NoteEventDetector {
 		if (!this.pitchDetector.detector && !this.chordDetector.analyzer) {
 			this.pitchDetector.initializePitchDetector(this.mic);
 			this.chordDetector.initializeAnalyzer(this.mic);
+			this.pitchDetector.startPitchDetection();
+			this.chordDetector.startChordDetection();
 		}
 
 		if (!this.nextExpectedNoteEvent) return;
 		if (this.nextExpectedNoteEvent.isMonophonic) {
 			this.pitchDetector.nextExpectedNoteEvent = this.nextExpectedNoteEvent;
 			if (this.activeDetector !== "PITCH") {
-				this.chordDetector.stop();
-				this.pitchDetector.startPitchDetection();
+				// this.chordDetector.stop();
+				// this.pitchDetector.startPitchDetection();
+				this.chordDetector.deactivate();
+				this.pitchDetector.activate();
 				this.activeDetector = "PITCH";
 			}
 		} else {
 			this.chordDetector.nextExpectedNoteEvent = this.nextExpectedNoteEvent;
 			if (this.activeDetector !== "CHORD") {
-				this.pitchDetector.stop();
-				this.chordDetector.startChordDetection();
+				// this.pitchDetector.stop();
+				// this.chordDetector.startChordDetection();
+				this.pitchDetector.deactivate();
+				this.chordDetector.activate();
 				this.activeDetector = "CHORD";
 			}
 		}
 		if (this.isUsingTestInterface) document.getElementById('activeDetector').innerHTML = this.activeDetector;
 	}
 
-	attemptRecovery(index) {
+	setRms(rms) {
+		this.rms = rms;
+	}
+
+	getRms() {
+		return this.rms;
+	}
+
+	startAttemptRecovery(index) {
 		console.log("attemptRecovery", index);
 		const nextExpectedMonophonicSequence = [];
 		this.pitchDetector.isAttemptingRecovery = true;
-		if (this.activeDetector === "CHORD") {
-			this.pitchDetector.startPitchDetection();
-		}
 	}
 
 	onStartStreamError(err) {

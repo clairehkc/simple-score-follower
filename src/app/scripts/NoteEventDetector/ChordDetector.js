@@ -1,6 +1,7 @@
 class ChordDetector {
-	constructor(audioContext, matchCallback, logTable, isUsingTestInterface) {
+	constructor(audioContext, setRms, matchCallback, logTable, isUsingTestInterface) {
 		this.audioContext = audioContext;
+		this.setRms = setRms;
 		this.matchCallback = matchCallback;
 		this.analyzer;
 		this.nextExpectedNoteEvent;
@@ -58,8 +59,9 @@ class ChordDetector {
 			document.getElementById('expectedChordValue').innerHTML = expectedChord;
 		}
 		if (!expectedChord) console.error("Invalid note event for chord detector");
-		if (features.rms < 0.05) return; // loudness - can iterate on this to filter out overtones
-		
+		this.setRms(features.rms);
+		if (features.rms < 0.03) return; // loudness
+		if (!this.isActive) return;
 		if (this.isUsingTestInterface && this.chordDetectionType === "TEMPLATE") {
 			this.determineMatchTemplate(expectedChord, features.chroma);
 		} else {
@@ -291,6 +293,14 @@ class ChordDetector {
 
 	isZeroVector(vector) {
 		return vector.every(element => element === 0);
+	}
+
+	activate() {
+		this.isActive = true;
+	}
+
+	deactivate() {
+		this.isActive = false;
 	}
 
 	stop() {

@@ -107,31 +107,38 @@ function onReceiveMatchResult(scoreEventId, matchResult, matchTime) {
 	if (!matchResult) {
 		if (!isAttemptingRecovery) {
 			consecutiveFalseMatches++;
-			if (consecutiveFalseMatches > 2) {
-				noteEventDetector.attemptRecovery(currentScoreIndex);
+			console.log("consecutiveFalseMatches", consecutiveFalseMatches);
+			if (consecutiveFalseMatches > 15) {
+				noteEventDetector.startAttemptRecovery(currentScoreIndex);
 				isAttemptingRecovery = true;
 			}
 		}
 		return;
 	}
 
-	if (scoreEventId === currentScoreIndex) {
-		if (currentScoreIndex === scoreEventList.length - 1) return;
-		currentScoreIndex++;
-		consecutiveFalseMatches = 0;
-		isAttemptingRecovery = false;
-		const currentScoreEvent = scoreEventList[currentScoreIndex];
-		osmd.cursor.next();
+	if (currentScoreIndex === scoreEventList.length - 1) return;
+	consecutiveFalseMatches = 0;
+	isAttemptingRecovery = false;
 
-		if (currentScoreEvent.noteEventString !== "X") {
-			lastMatchLength = currentScoreEvent.noteEventLength;
-			lastMatchAcceptTime = matchTime;
-			noteEventDetector.setNextExpectedNoteEvent(currentScoreEvent.noteEventString, currentScoreEvent.scoreEventId);
-		} else {
-			skipEvent();	
-		}
+	if (scoreEventId === currentScoreIndex) {
+		currentScoreIndex++;
+		osmd.cursor.next();
 	} else {
-		if (!noteEventDetector.isUsingTestInterface) console.error("Received out of order match response from NoteEventDetector for scoreEventId: ", scoreEventId);
+		currentScoreIndex = scoreEventId + 1;
+		const indexDiff = scoreEventId - currentScoreIndex;
+		for (let i = 0; i < indexDiff; i++) {
+			if (osmd.cursor.iterator.EndReached) break;
+			osmd.cursor.next();
+		}
+	}
+	const currentScoreEvent = scoreEventList[currentScoreIndex];
+
+	if (currentScoreEvent.noteEventString !== "X") {
+		lastMatchLength = currentScoreEvent.noteEventLength;
+		lastMatchAcceptTime = matchTime;
+		noteEventDetector.setNextExpectedNoteEvent(currentScoreEvent.noteEventString, currentScoreEvent.scoreEventId);
+	} else {
+		skipEvent();
 	}
 }
 
