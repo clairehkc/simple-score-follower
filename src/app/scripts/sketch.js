@@ -9,6 +9,9 @@ let consecutiveFalseMatches = 0;
 let onScoreClickStartingPositionObjectId;
 let startButton, stopButton, skipButton;
 
+let lastMatchLength = 0;
+let lastMatchAcceptTime = Date.now();
+
 function setup() {
 	const audioContext = getAudioContext();
 	const audioInput = new p5.AudioIn();
@@ -98,7 +101,9 @@ function stopStream() {
 	skipButton.disabled = true;
 }
 
-function onReceiveMatchResult(scoreEventId, matchResult) {
+function onReceiveMatchResult(scoreEventId, matchResult, matchTime) {
+	if ((matchTime - lastMatchAcceptTime) < lastMatchLength) return;
+
 	if (!matchResult) {
 		if (!isAttemptingRecovery) {
 			consecutiveFalseMatches++;
@@ -119,6 +124,8 @@ function onReceiveMatchResult(scoreEventId, matchResult) {
 		osmd.cursor.next();
 
 		if (currentScoreEvent.noteEventString !== "X") {
+			lastMatchLength = currentScoreEvent.noteEventLength;
+			lastMatchAcceptTime = matchTime;
 			noteEventDetector.setNextExpectedNoteEvent(currentScoreEvent.noteEventString, currentScoreEvent.scoreEventId);
 		} else {
 			skipEvent();	

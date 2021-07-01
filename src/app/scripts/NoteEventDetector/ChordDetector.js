@@ -102,11 +102,9 @@ class ChordDetector {
 			document.getElementById('chordMatchResult').innerHTML = matchResult;
 		}
 
-		if (matchResult) {
-			this.matchCallback(this.nextExpectedNoteEvent.scoreEventId);
-		} else {
-			// console.log("expectedChord, detectedChord", expectedChord, " | ", detectedChord);
-		}
+		this.matchCallback(this.nextExpectedNoteEvent.scoreEventId, matchResult, Date.now());
+
+		if (!matchResult) console.log("expectedChord, detectedChord", expectedChord, " | ", detectedChord);
 		this.logResultTemplate(expectedChord, truncatedChroma, detectedChord, matchResult);
 		return matchResult;
 	}
@@ -163,7 +161,7 @@ class ChordDetector {
 		const chromaLabels = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 		const truncatedChroma = detectedChroma.map((value, index) => chromaLabels[index] + ": " + value.toFixed(2));
 
-		this.matchCallback(this.nextExpectedNoteEvent.scoreEventId, matchResult);
+		this.matchCallback(this.nextExpectedNoteEvent.scoreEventId, matchResult, Date.now());
 		// if (!matchResult) console.log("expectedChord, detectedChord", expectedChord, " | ", detectedChord);
 
 		if (this.isUsingTestInterface) {

@@ -78,7 +78,7 @@ class PitchDetector {
 			document.getElementById('pitchMatchResult').innerHTML = matchResult;	
 		}
 
-		this.matchCallback(this.nextExpectedNoteEvent.scoreEventId, matchResult);
+		this.matchCallback(this.nextExpectedNoteEvent.scoreEventId, matchResult, Date.now());
 		// if (!matchResult) console.log("expectedPitch, detectedPitch", this.nextExpectedNoteEvent.noteEventString, expectedPitch, " | ",  detectedPitch);
 		return matchResult	
 	}
