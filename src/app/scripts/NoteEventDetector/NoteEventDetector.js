@@ -34,20 +34,7 @@ class NoteEventDetector {
 
 	addNoteEvent(noteEventString, scoreEventId) {
 		const noteEvent = new NoteEvent(noteEventString, scoreEventId);
-		// make a map of note events by id
-		// if (!noteEvent.isMonophonic) {
-		// 	const expectedNotes = noteEvent.keys;
-		// 	const expectedIndices = expectedNotes.map(note => ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"].indexOf(note));
-		// 	const expectedTemplate = [0,0,0,0,0,0,0,0,0,0,0,0].map((bucket, index) => (expectedIndices.includes(index)) ? 1 : 0);
-		// 	noteEvent.chordTemplate = expectedTemplate;
-		// }
 		this.noteEventMap[scoreEventId] = noteEvent;
-		// this.chordDetector.chordToTemplateTable[noteEvent.noteEventString] = expectedTemplate;
-		// this.chordDetector.templateToChordTable[expectedTemplate] = noteEvent.noteEventString;
-		// if (!this.chordDetector.templates.find(template => template.toString() === expectedTemplate.toString())) this.chordDetector.templates.push(expectedTemplate);
-		// console.log("templates", this.chordDetector.templates);
-		// console.log("chordToTemplateTable", this.chordDetector.chordToTemplateTable);
-		// console.log("", this.chordDetector.templateToChordTable);
 	}
 
 	setNextExpectedNoteEvent(noteEventString, scoreEventId) {
@@ -61,7 +48,7 @@ class NoteEventDetector {
 			return;
 		}
 
-		this.nextExpectedNoteEvent = this.noteEventMap[scoreEventId];
+		this.nextExpectedNoteEvent = (this.isUsingTestInterface) ? new NoteEvent(noteEventString) : this.noteEventMap[scoreEventId];
 		if (this.mic.stream) this.startDetection();
 		if (this.isUsingTestInterface && this.startButton.disabled) this.startButton.disabled = false;
 	}
@@ -100,6 +87,7 @@ class NoteEventDetector {
 				this.activeDetector = "CHORD";
 			}
 		}
+		console.log("activeDetector", this.activeDetector);
 		if (this.isUsingTestInterface) document.getElementById('activeDetector').innerHTML = this.activeDetector;
 	}
 

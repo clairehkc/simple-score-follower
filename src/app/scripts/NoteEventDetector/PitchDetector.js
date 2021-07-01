@@ -36,7 +36,7 @@ class PitchDetector {
 	}
 
 	modelLoaded() {
-		this.readyCallback();
+		if (!this.isUsingTestInterface) this.readyCallback();
 	}
 
 	getPitch() {

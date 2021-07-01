@@ -11,7 +11,14 @@ class ChordDetector {
 		this.logTable = logTable;
 		this.isUsingTestInterface = isUsingTestInterface;
 
-		this.initializeChordToTemplateTable();
+		if (this.isUsingTestInterface) {
+			this.initializeChordToTemplateTable();
+			this.chordDetectionType = "TEMPLATE";
+			const chordDetectionTypeInputs = document.getElementsByName("chordDetectionTypeInput");
+			chordDetectionTypeInputs.forEach(input => input.addEventListener('change', (event) => {
+			  this.chordDetectionType = event.target.value;
+			}));
+		}
 		this.pitchClasses = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 	}
 
@@ -45,85 +52,66 @@ class ChordDetector {
 	}
 
 	getChordCallback(features) {
-		// const expectedChord = this.getChordForNoteEvent(this.nextExpectedNoteEvent);
-		const expectedChord = this.nextExpectedNoteEvent.noteEventString;
+		let expectedChord = this.nextExpectedNoteEvent.noteEventString;
+		if (this.isUsingTestInterface) {
+			if (this.chordDetectionType === "TEMPLATE") expectedChord = this.getChordForNoteEvent(this.nextExpectedNoteEvent);
+			document.getElementById('expectedChordValue').innerHTML = expectedChord;
+		}
 		if (!expectedChord) console.error("Invalid note event for chord detector");
-		// if (this.isUsingTestInterface) document.getElementById('expectedChordValue').innerHTML = expectedChord;
-		if (features.rms < 0.01) return; // loudness - can iterate on this to filter out overtones
-		// const matchResult = this.determineMatch(expectedChord, features.chroma);
-		const matchResult = this.determineMatch(features.chroma);
+		if (features.rms < 0.05) return; // loudness - can iterate on this to filter out overtones
+		
+		if (this.isUsingTestInterface && this.chordDetectionType === "TEMPLATE") {
+			this.determineMatchTemplate(expectedChord, features.chroma);
+		} else {
+			this.determineMatch(features.chroma);
+		}
 	}
 
-	// ** distance check only
-	// determineMatch(expectedChord, detectedChroma) {
-	// 	if (this.isZeroVector(detectedChroma)) return;
+	// ** template matching
+	determineMatchTemplate(expectedChord, detectedChroma) {
+		if (this.isZeroVector(detectedChroma)) return;
+		const chordGuessList = this.getChordGuessForDetectedChroma(detectedChroma, 10);
+		const bestGuess = chordGuessList[0];
+		console.log("chordGuessList", chordGuessList);
+		// if expectedChord is found in the top n guesses, consider it a match
+		const matchInGuesses = chordGuessList.find(guess => guess.label === expectedChord);
+		const detectedChord = matchInGuesses && matchInGuesses.label || bestGuess.label;
+		let matchResult = expectedChord === detectedChord;
 
-	// 	const truncatedChroma = detectedChroma.map(value => value.toFixed(2));
+		const truncatedChroma = detectedChroma.map(value => value.toFixed(2));
 
-	// 	const distance = this.getVectorDistance(this.nextExpectedNoteEvent.chordTemplate, detectedChroma);
-	// 	const matchResult = distance < 3;
-	// 	console.log(this.nextExpectedNoteEvent.chordTemplate, " | ", truncatedChroma, distance);
+		if (matchResult) {
+			// filter out results without a matching peak with the expected chord
+			const expectedTemplate = this.chordToTemplateTable[expectedChord];
+			const expectedPeakIndices = [];
+			for (let i = 0; i < expectedTemplate.length; i++) {
+				if (expectedTemplate[i] === 1) expectedPeakIndices.push(i);
+			}
+			const sortedChroma = detectedChroma.slice().sort();
+			const detectedPeakIndices = sortedChroma.slice(9, 12).map(val => detectedChroma.indexOf(val)).sort();
+			const hasMatchingPeak = expectedPeakIndices.find(peakIndex => detectedPeakIndices.includes(peakIndex));
+			if (!hasMatchingPeak) {
+				matchResult = false;
+				console.log("no matching peak found");
+			}
+		}
 
-	// 	// if (this.isUsingTestInterface) {
-	// 	// 	document.getElementById('detectedChromaValue').innerHTML = truncatedChroma;
-	// 	// 	document.getElementById('detectedChordValue').innerHTML = detectedChord;
-	// 	// 	document.getElementById('chordMatchResult').innerHTML = matchResult;
-	// 	// }
+		if (this.isUsingTestInterface) {
+			document.getElementById('detectedChromaValue').innerHTML = truncatedChroma;
+			document.getElementById('detectedChordValue').innerHTML = detectedChord;
+			document.getElementById('chordMatchResult').innerHTML = matchResult;
+		}
 
-	// 	if (matchResult) {
-	// 		this.matchCallback(this.nextExpectedNoteEvent.scoreEventId);
-	// 	} else {
-	// 		// console.log("expectedChord, detectedChord, distance", expectedChord, " | ", detectedChord, distance);
-	// 	}
-	// 	this.logResult(expectedChord, truncatedChroma, detectedChord, matchResult);
-	// 	return matchResult;
-	// }
+		if (matchResult) {
+			this.matchCallback(this.nextExpectedNoteEvent.scoreEventId);
+		} else {
+			console.log("expectedChord, detectedChord", expectedChord, " | ", detectedChord);
+		}
+		this.logResultTemplate(expectedChord, truncatedChroma, detectedChord, matchResult);
+		return matchResult;
+	}
 
-	// ** templates
-	// determineMatch(expectedChord, detectedChroma) {
-	// 	if (this.isZeroVector(detectedChroma)) return;
-	// 	const chordGuessList = this.getChordGuessForDetectedChroma(detectedChroma, 10);
-	// 	const bestGuess = chordGuessList[0];
-	// 	console.log("chordGuessList", chordGuessList);
-	// 	// if expectedChord is found in the top n guesses, consider it a match
-	// 	const matchInGuesses = chordGuessList.find(guess => guess.label === expectedChord);
-	// 	const detectedChord = matchInGuesses && matchInGuesses.label || bestGuess.label;
-	// 	let matchResult = expectedChord === detectedChord;
-
-	// 	const truncatedChroma = detectedChroma.map(value => value.toFixed(2));
-
-	// 	if (matchResult) {
-	// 		// filter out results without a matching peak with the expected chord
-	// 		const expectedTemplate = this.chordToTemplateTable[expectedChord];
-	// 		const expectedPeakIndices = [];
-	// 		for (let i = 0; i < expectedTemplate.length; i++) {
-	// 			if (expectedTemplate[i] === 1) expectedPeakIndices.push(i);
-	// 		}
-	// 		const sortedChroma = detectedChroma.slice().sort();
-	// 		const detectedPeakIndices = sortedChroma.slice(9, 12).map(val => detectedChroma.indexOf(val)).sort();
-	// 		const hasMatchingPeak = expectedPeakIndices.find(peakIndex => detectedPeakIndices.includes(peakIndex));
-	// 		if (!hasMatchingPeak) {
-	// 			matchResult = false;
-	// 			console.log("no matching peak found");
-	// 		}
-	// 	}
-
-	// 	if (this.isUsingTestInterface) {
-	// 		document.getElementById('detectedChromaValue').innerHTML = truncatedChroma;
-	// 		document.getElementById('detectedChordValue').innerHTML = detectedChord;
-	// 		document.getElementById('chordMatchResult').innerHTML = matchResult;
-	// 	}
-
-	// 	if (matchResult) {
-	// 		this.matchCallback(this.nextExpectedNoteEvent.scoreEventId);
-	// 	} else {
-	// 		console.log("expectedChord, detectedChord", expectedChord, " | ", detectedChord);
-	// 	}
-	// 	this.logResult(expectedChord, truncatedChroma, detectedChord, matchResult);
-	// 	return matchResult;
-	// }
-
-	// ** pro vs con check
+	// ** checking approx peaks
 	determineMatch(detectedChroma) {
 		if (this.isZeroVector(detectedChroma)) return;
 
@@ -152,7 +140,7 @@ class ChordDetector {
 			const groupTotal = groupChroma.reduce((a, b) => a + b, 0);
 			return groupTotal / group.length;
 		});
-		console.log("groupAverages", groupAverages);
+		// console.log("groupAverages", groupAverages);
 
 		const unexpectedIndices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].filter(index => !expectedIndicesAndNeighbors.includes(index));
 		// console.log("unexpectedIndices", unexpectedIndices);
@@ -166,21 +154,14 @@ class ChordDetector {
 			console.log("avg compare diff", proAverage, conAverage, proAverage - conAverage);
 			// matchResult = (proAverage > conAverage) && (proAverage > 0.80) && (conAverage < 0.75);
 			const hasMoreThanTwoNotes = this.nextExpectedNoteEvent.keys.length > 2;
-			const diffAllowance = hasMoreThanTwoNotes ? 0.05 : 0.07;
-			const proAverageRequirement = 0.8;
-			matchResult = (proAverage > proAverageRequirement) && (proAverage - conAverage > diffAllowance) && groupAverages.every(average => average > proAverage - 0.2);
+			const proAverageRequirement = 0.7;
+			matchResult = (proAverage > proAverageRequirement) && (proAverage > conAverage) && groupAverages.every(average => average > proAverage - 0.2);
 		} else {
 			matchResult = true;
 		}
 
 		const chromaLabels = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 		const truncatedChroma = detectedChroma.map((value, index) => chromaLabels[index] + ": " + value.toFixed(2));
-		console.log('chroma', truncatedChroma);
-		// if (this.isUsingTestInterface) {
-		// 	document.getElementById('detectedChromaValue').innerHTML = truncatedChroma;
-		// 	document.getElementById('detectedChordValue').innerHTML = detectedChord;
-		// 	document.getElementById('chordMatchResult').innerHTML = matchResult;
-		// }
 
 		if (matchResult) {
 			this.matchCallback(this.nextExpectedNoteEvent.scoreEventId, Date.now());
@@ -188,6 +169,12 @@ class ChordDetector {
 		// else {
 			// console.log("expectedChord, detectedChord", expectedChord, " | ", detectedChord);
 		// }
+
+		if (this.isUsingTestInterface) {
+			document.getElementById('detectedChromaValue').innerHTML = truncatedChroma;
+			document.getElementById('chordMatchResult').innerHTML = matchResult;
+		}
+
 		this.logResult(this.nextExpectedNoteEvent.noteEventString, truncatedChroma, matchResult);
 		return matchResult;
 	}
@@ -317,23 +304,21 @@ class ChordDetector {
 		this.isActive = false;
 	}
 
-	// logResult(expectedChord, detectedChroma, detectedChord, matchResult) {
-	// 	let newRow = this.logTable.addRow();
-	// 	newRow.setString('Type', 'Chord');
-	// 	newRow.setString('Input', this.nextExpectedNoteEvent.noteEventString);
-	// 	newRow.setString('Expected', expectedChord);
-	// 	newRow.setString('Detected', detectedChroma.toString());
-	// 	newRow.setString('Guess', detectedChord);
-	// 	newRow.setString('Match', matchResult.toString());	
-	// }
+	logResultTemplate(expectedChord, detectedChroma, detectedChord, matchResult) {
+		let newRow = this.logTable.addRow();
+		newRow.setString('Type', 'Chord Template');
+		newRow.setString('Input', this.nextExpectedNoteEvent.noteEventString);
+		newRow.setString('Expected', expectedChord);
+		newRow.setString('Detected', detectedChroma.toString());
+		newRow.setString('Guess', detectedChord);
+		newRow.setString('Match', matchResult.toString());	
+	}
 
 	logResult(detectedChroma, matchResult) {
 		let newRow = this.logTable.addRow();
-		newRow.setString('Type', 'Chord');
+		newRow.setString('Type', 'Chord Peak');
 		newRow.setString('Input', this.nextExpectedNoteEvent.noteEventString);
-		// newRow.setString('Expected', expectedChord);
 		newRow.setString('Detected', detectedChroma.toString());
-		// newRow.setString('Guess', detectedChord);
 		newRow.setString('Match', matchResult.toString());	
 	}
 }
