@@ -118,8 +118,7 @@ function getNextExpectedMonophonicSequence(index) {
 }
 
 function onReceiveMatchResult(scoreEventId, matchResult, matchTime) {
-	if ((matchTime - lastMatchAcceptTime) < lastMatchLength) return;
-
+	if (matchTime !== -1 && ((matchTime - lastMatchAcceptTime) < lastMatchLength)) return;
 	if (!matchResult) {
 		if (!isAttemptingRecovery) {
 			consecutiveFalseMatches++;
@@ -133,18 +132,21 @@ function onReceiveMatchResult(scoreEventId, matchResult, matchTime) {
 		return;
 	}
 
-	if (currentScoreIndex === scoreEventList.length - 1) return;
 	consecutiveFalseMatches = 0;
 	isAttemptingRecovery = false;
+
+	if (currentScoreIndex === scoreEventList.length - 1) return;
+
+	console.log("onReceiveMatchResult", scoreEventId, currentScoreIndex);
 
 	if (scoreEventId === currentScoreIndex) {
 		currentScoreIndex++;
 		osmd.cursor.next();
 	} else {
-		currentScoreIndex = scoreEventId + 1;
 		const indexDiff = scoreEventId - currentScoreIndex;
 		for (let i = 0; i < indexDiff; i++) {
 			if (osmd.cursor.iterator.EndReached) break;
+			currentScoreIndex++;
 			osmd.cursor.next();
 		}
 	}

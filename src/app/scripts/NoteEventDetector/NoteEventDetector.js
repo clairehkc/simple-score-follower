@@ -110,7 +110,6 @@ class NoteEventDetector {
 	}
 
 	startAttemptRecovery(sequence) {
-		console.log("attemptRecovery", index);
 		this.pitchDetector.startAttemptRecovery(sequence);
 	}
 
