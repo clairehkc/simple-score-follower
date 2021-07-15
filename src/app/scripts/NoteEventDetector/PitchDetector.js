@@ -7,15 +7,12 @@ class PitchDetector {
 		this.matchCallback = matchCallback;
 		this.isActive = false;
 		this.isAttemptingRecovery = false;
+		this.nextExpectedMonophonicSequence = [];
 		this.detector;
 		this.nextExpectedNoteEvent;
 		this.noteToFrequencyTable = {};
 		this.logTable = logTable;
 		this.isUsingTestInterface = isUsingTestInterface;
-
-		this.frequencySet = new Set();
-		this.lastSet = new Set();
-		this.lastX = [];
 		this.initializeNoteToFrequencyTable();
 	}
 
@@ -47,16 +44,24 @@ class PitchDetector {
 
 	getPitchCallback(err, frequency) {
 	  if (frequency && this.getRms() > 0.003) {
-	  	if (this.isAttemptingRecovery) {
+	  	if (this.isAttemptingRecovery && this.nextExpectedMonophonicSequence.length > 0) {
 	  		console.log("isAttemptingRecovery");
 	  		// keep attempting until cleared or heard all 3 notes
-	  		// const nextExpectedMonophonicPitch = this.noteToFrequencyTable[this.nextExpectedMonophonicSequence.noteEventId];
-	  		// if (!nextExpectedMonophonicPitch) {
-	  		// 	console.error("Invalid note event for pitch detector", this.nextExpectedMonophonicSequence.noteEventId);
-	  		// 	return;
-	  		// }
-	  		// if (recovered) this.isAttemptingRecovery = false;
-	  		// this.matchCallback(this.nextExpectedNoteEvent.scoreEventId, matchResult, Date.now());
+				const nextExpectedMonophonicPitchEvent = this.nextExpectedMonophonicSequence[0];
+				const nextExpectedMonophonicPitch = this.noteToFrequencyTable[this.nextExpectedMonophonicPitchEvent.noteEventString];
+	  		if (!nextExpectedMonophonicPitch) {
+	  			console.error("Invalid note event for pitch detector", this.nextExpectedMonophonicSequence.noteEventString);
+	  			return;
+	  		}
+	  		
+	  		const matchResult = this.determineMatch(nextExpectedMonophonicPitch, frequency);
+	  		if (matchResult) this.nextExpectedMonophonicSequence.shift();
+	  		
+	  		if (this.nextExpectedMonophonicSequence.length === 0) {
+	  			console.log("isAttemptingRecovery success");
+	  			this.stopAttemptRecovery();
+	  			this.matchCallback(this.nextExpectedMonophonicPitchEvent.scoreEventId, true, Date.now());
+	  		}
 	  	}
 
 	  	if (!this.isActive) {
@@ -64,9 +69,9 @@ class PitchDetector {
 	  		return;
 	  	}
 
-	  	const expectedPitch = this.noteToFrequencyTable[this.nextExpectedNoteEvent.noteEventId];
+	  	const expectedPitch = this.noteToFrequencyTable[this.nextExpectedNoteEvent.noteEventString];
 	  	if (!expectedPitch) {
-	  		console.error("Invalid note event for pitch detector", this.nextExpectedNoteEvent.noteEventId);
+	  		console.error("Invalid note event for pitch detector", this.nextExpectedNoteEvent.noteEventString);
 	  		return;
 	  	}
 	  	const matchResult = this.determineMatch(expectedPitch, frequency);
@@ -88,6 +93,15 @@ class PitchDetector {
 		this.matchCallback(this.nextExpectedNoteEvent.scoreEventId, matchResult, Date.now());
 		// if (!matchResult) console.log("expectedPitch, detectedPitch", this.nextExpectedNoteEvent.noteEventString, expectedPitch, " | ",  detectedPitch);
 		return matchResult	
+	}
+
+	startAttemptRecovery(sequence) {
+		this.isAttemptingRecovery = true;
+		this.nextExpectedMonophonicSequence = sequence;
+	}
+
+	stopAttemptRecovery() {
+		this.isAttemptingRecovery = false;
 	}
 
 	activate() {

@@ -101,6 +101,22 @@ function stopStream() {
 	skipButton.disabled = true;
 }
 
+function getNextExpectedMonophonicSequence(index) {
+	if (index + 1 >= scoreEventList.length) return;
+	let sequence = [];
+	for (let i = index + 1; i < scoreEventList.length; i++) {
+		const currentEvent = scoreEventList[i];
+		if (currentEvent.numberOfNotes === 1) {
+			const noteEvent = noteEventDetector.createNoteEvent(currentEvent.noteEventString, currentEvent.scoreEventId);
+			sequence.push(noteEvent);
+		} else {
+			sequence = [];
+		}
+		if (sequence.length === 3) break;
+	}
+	return sequence;
+}
+
 function onReceiveMatchResult(scoreEventId, matchResult, matchTime) {
 	if ((matchTime - lastMatchAcceptTime) < lastMatchLength) return;
 
@@ -109,7 +125,8 @@ function onReceiveMatchResult(scoreEventId, matchResult, matchTime) {
 			consecutiveFalseMatches++;
 			console.log("consecutiveFalseMatches", consecutiveFalseMatches);
 			if (consecutiveFalseMatches > 15) {
-				noteEventDetector.startAttemptRecovery(currentScoreIndex);
+				const nextExpectedMonophonicSequence = getNextExpectedMonophonicSequence(currentScoreIndex);
+				noteEventDetector.startAttemptRecovery(nextExpectedMonophonicSequence);
 				isAttemptingRecovery = true;
 			}
 		}

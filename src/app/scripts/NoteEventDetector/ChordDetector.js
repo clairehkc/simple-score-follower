@@ -179,7 +179,6 @@ class ChordDetector {
 	// determines the closest chord label for the score event
 	getChordForNoteEvent(noteEvent) {
 		const keys = noteEvent.keys;
-		const noteEventId = noteEvent.noteEventId;
 		const chordIncludesSharps = keys.slice(0, 3).find(key => key.includes("#"));
 		// order chord labels by prioritizing chords with matching root notes and accidentals
 		// prioritize chords with/without sharps based on whether or not the lower three notes of the event include sharps

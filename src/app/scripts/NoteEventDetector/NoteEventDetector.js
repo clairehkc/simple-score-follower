@@ -34,8 +34,12 @@ class NoteEventDetector {
 	}
 
 	addNoteEvent(noteEventString, scoreEventId) {
-		const noteEvent = new NoteEvent(noteEventString, scoreEventId);
+		const noteEvent = this.createNoteEvent(noteEventString, scoreEventId);
 		this.noteEventMap[scoreEventId] = noteEvent;
+	}
+
+	createNoteEvent(noteEventString, scoreEventId) {
+		return new NoteEvent(noteEventString, scoreEventId);
 	}
 
 	setNextExpectedNoteEvent(noteEventString, scoreEventId) {
@@ -105,10 +109,9 @@ class NoteEventDetector {
 		return this.rms;
 	}
 
-	startAttemptRecovery(index) {
+	startAttemptRecovery(sequence) {
 		console.log("attemptRecovery", index);
-		const nextExpectedMonophonicSequence = [];
-		this.pitchDetector.isAttemptingRecovery = true;
+		this.pitchDetector.startAttemptRecovery(sequence);
 	}
 
 	onStartStreamError(err) {
