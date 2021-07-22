@@ -45,6 +45,7 @@ class PitchDetector {
 	getPitchCallback(err, frequency) {
 	  if (frequency && this.getRms() > 0.002) {
 	  	if (this.isAttemptingRecovery && this.nextExpectedMonophonicSequence.length > 0) {
+	  		console.log("isAttemptingRecovery", this.nextExpectedMonophonicSequence);
 	  		// keep attempting until cleared or heard all 3 notes
 				const nextExpectedMonophonicPitchEvent = this.nextExpectedMonophonicSequence[0];
 				const nextExpectedMonophonicPitch = this.noteToFrequencyTable[nextExpectedMonophonicPitchEvent.noteEventString];
@@ -57,6 +58,7 @@ class PitchDetector {
 	  		if (matchResult) this.nextExpectedMonophonicSequence.shift();
 	  		
 	  		if (this.nextExpectedMonophonicSequence.length === 0) {
+	  			console.log("recovery success", nextExpectedMonophonicPitchEvent.scoreEventId);
 	  			this.matchCallback(nextExpectedMonophonicPitchEvent.scoreEventId, true, -1); // set matchTime to -1 to override timing requirement
 	  			this.stopAttemptRecovery();
 	  		}

@@ -123,7 +123,7 @@ function onReceiveMatchResult(scoreEventId, matchResult, matchTime) {
 		if (!isAttemptingRecovery) {
 			consecutiveFalseMatches++;
 			console.log("consecutiveFalseMatches", consecutiveFalseMatches);
-			if (consecutiveFalseMatches > 15) {
+			if (consecutiveFalseMatches > 10) {
 				const nextExpectedMonophonicSequence = getNextExpectedMonophonicSequence(currentScoreIndex);
 				noteEventDetector.startAttemptRecovery(nextExpectedMonophonicSequence);
 				isAttemptingRecovery = true;
