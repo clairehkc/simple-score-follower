@@ -42,6 +42,10 @@ class NoteEventDetector {
 		return new NoteEvent(noteEventString, scoreEventId);
 	}
 
+	getNoteEventWithId(scoreEventId) {
+		return this.noteEventMap[scoreEventId];
+	}
+
 	setNextExpectedNoteEvent(noteEventString, scoreEventId) {
 		if (this.isUsingTestInterface) {
 			noteEventString = document.getElementById("noteEventInput").value;
@@ -82,8 +86,6 @@ class NoteEventDetector {
 		if (this.nextExpectedNoteEvent.isMonophonic) {
 			this.pitchDetector.nextExpectedNoteEvent = this.nextExpectedNoteEvent;
 			if (this.activeDetector !== "PITCH") {
-				// this.chordDetector.stop();
-				// this.pitchDetector.startPitchDetection();
 				this.chordDetector.deactivate();
 				this.pitchDetector.activate();
 				this.activeDetector = "PITCH";
@@ -91,8 +93,6 @@ class NoteEventDetector {
 		} else {
 			this.chordDetector.nextExpectedNoteEvent = this.nextExpectedNoteEvent;
 			if (this.activeDetector !== "CHORD") {
-				// this.pitchDetector.stop();
-				// this.chordDetector.startChordDetection();
 				this.pitchDetector.deactivate();
 				this.chordDetector.activate();
 				this.activeDetector = "CHORD";

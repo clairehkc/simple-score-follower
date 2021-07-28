@@ -4,12 +4,14 @@ let scoreParser, noteEventDetector;
 let isDetectorReady = false;
 let isAttemptingRecovery = false;
 let scoreEventList = [];
+let beginRepeatEvents = [];
+let endRepeatEvents = [];
 let currentScoreIndex = 0;
-let consecutiveFalseMatches = 0;
-let onScoreClickStartingPositionObjectId;
+let consecutiveMisses = 0;
+let updateCursorStartingPositionObjectId;
 let startButton, stopButton, skipButton;
 
-let lastMatchLength = 0;
+let nextNoteEventLength = 0;
 let lastMatchAcceptTime = Date.now();
 
 function setup() {
@@ -71,6 +73,8 @@ function renderScore(xmlDoc) {
 	  osmd.render();
 	  scoreEventList = scoreParser.parse(osmd);
 	  scoreEventList.forEach(scoreEvent => noteEventDetector.addNoteEvent(scoreEvent.noteEventString, scoreEvent.scoreEventId));
+	  beginRepeatEvents = scoreEventList.filter(event => event.isBeginRepeatEvent);
+	  endRepeatEvents = scoreEventList.filter(event => event.isEndRepeatEvent);
 	  osmd.cursor.reset();
 	 	observeCursor();
 	  const currentScoreEvent = scoreEventList[currentScoreIndex];
@@ -118,12 +122,12 @@ function getNextExpectedMonophonicSequence(index) {
 }
 
 function onReceiveMatchResult(scoreEventId, matchResult, matchTime) {
-	if (matchTime !== -1 && ((matchTime - lastMatchAcceptTime) < lastMatchLength)) return;
+	if (matchTime !== -1 && ((matchTime - lastMatchAcceptTime) < nextNoteEventLength)) return;
 	if (!matchResult) {
 		if (!isAttemptingRecovery) {
-			consecutiveFalseMatches++;
-			console.log("consecutiveFalseMatches", consecutiveFalseMatches);
-			if (consecutiveFalseMatches > 10) {
+			consecutiveMisses++;
+			console.log("consecutiveMisses", consecutiveMisses);
+			if (consecutiveMisses > 10) {
 				const nextExpectedMonophonicSequence = getNextExpectedMonophonicSequence(currentScoreIndex);
 				noteEventDetector.startAttemptRecovery(nextExpectedMonophonicSequence);
 				isAttemptingRecovery = true;
@@ -132,30 +136,49 @@ function onReceiveMatchResult(scoreEventId, matchResult, matchTime) {
 		return;
 	}
 
-	consecutiveFalseMatches = 0;
+	// successful match
+	consecutiveMisses = 0;
 	isAttemptingRecovery = false;
-
-	if (currentScoreIndex === scoreEventList.length - 1) return;
-
 	console.log("onReceiveMatchResult", scoreEventId, currentScoreIndex);
 
-	if (scoreEventId === currentScoreIndex) {
-		currentScoreIndex++;
-		osmd.cursor.next();
+	let newScoreIndex = currentScoreIndex;
+
+	// handle repeats
+	const currentScoreEvent = scoreEventList[currentScoreIndex];
+	if (currentScoreEvent.isEndRepeatEvent && !currentScoreEvent.hasCompletedRepeat) {
+		const priorBeginRepeatEvents = beginRepeatEvents.filter(beginRepeatEvent => beginRepeatEvent.scoreEventId < currentScoreIndex);
+		const matchingBeginRepeatEvent = priorBeginRepeatEvents[priorBeginRepeatEvents.length - 1];
+		console.log("matchingBeginRepeatEvent", matchingBeginRepeatEvent);
+		scoreEventList[currentScoreIndex].hasCompletedRepeat = true;
+		updateCursorStartingPositionObjectId = currentScoreEvent.objectIds[0];
+		updateCursorPositionToOjbectId(matchingBeginRepeatEvent.objectIds[0], true);
 	} else {
-		const indexDiff = scoreEventId - currentScoreIndex;
-		for (let i = 0; i < indexDiff; i++) {
-			if (osmd.cursor.iterator.EndReached) break;
-			currentScoreIndex++;
+		if (currentScoreIndex === scoreEventList.length - 1) return;
+		if (scoreEventId === currentScoreIndex) {
+			// sequential match
+			newScoreIndex++;
 			osmd.cursor.next();
+			updateScorePosition(newScoreIndex);
+		} else {
+			// recovery match, jump forward
+			// const indexDiff = scoreEventId - currentScoreIndex;
+			// for (let i = 0; i < indexDiff; i++) {
+			// 	if (osmd.cursor.iterator.EndReached) break;
+			// 	newScoreIndex++;
+			// 	osmd.cursor.next();
+			// }
+			const matchedEvent = scoreEventList[scoreEventId];
+			updateCursorStartingPositionObjectId = currentScoreEvent.objectIds[0];
+			updateCursorPositionToOjbectId(matchedEvent.objectIds[0], true);
 		}
 	}
-	const currentScoreEvent = scoreEventList[currentScoreIndex];
 
-	if (currentScoreEvent.noteEventString !== "X") {
-		lastMatchLength = currentScoreEvent.noteEventLength;
-		lastMatchAcceptTime = matchTime;
-		noteEventDetector.setNextExpectedNoteEvent(currentScoreEvent.noteEventString, currentScoreEvent.scoreEventId);
+	
+	lastMatchAcceptTime = matchTime;
+
+	const nextScoreEvent = scoreEventList[newScoreIndex];
+	if (nextScoreEvent.noteEventString !== "X") {
+		nextNoteEventLength = nextScoreEvent.noteEventLength;
 	} else {
 		skipEvent();
 	}
@@ -194,41 +217,41 @@ function onScoreClick(clickEvent) {
   const nearestNoteObjectId = nearestNote.NoteToGraphicalNoteObjectId;
   if (nearestNoteObjectId) {
   	const notesUnderCursor = osmd.cursor.NotesUnderCursor();
-  	onScoreClickStartingPositionObjectId = notesUnderCursor[0].NoteToGraphicalNoteObjectId;
-  	updateCursorPosition(nearestNoteObjectId, true);
+  	updateCursorStartingPositionObjectId = notesUnderCursor[0].NoteToGraphicalNoteObjectId;
+  	updateCursorPositionToOjbectId(nearestNoteObjectId, true);
   }
 }
 
-function updateCursorPosition(nearestNoteObjectId, atStartingPosition = false) {
+function updateCursorPositionToOjbectId(objectId, isAtStartingPosition = false) {
 	const notesUnderCursor = osmd.cursor.NotesUnderCursor();
 	const currentScoreEventObjectIds = notesUnderCursor.map(note => note.NoteToGraphicalNoteObjectId);
 
-	if (!atStartingPosition && currentScoreEventObjectIds.includes(onScoreClickStartingPositionObjectId)) {
+	if (!isAtStartingPosition && currentScoreEventObjectIds.includes(updateCursorStartingPositionObjectId)) {
 		console.error("No matching note found");
 		return;
 	}
 
-	if (currentScoreEventObjectIds.includes(nearestNoteObjectId)) {
-		if (atStartingPosition) return;
+	if (currentScoreEventObjectIds.includes(objectId)) {
+		if (isAtStartingPosition) return;
 		osmd.cursor.show();
-		const scoreEvent = scoreEventList.find(event => event.objectIds.includes(nearestNoteObjectId));
+		const scoreEvent = scoreEventList.find(event => event.objectIds.includes(objectId));
 		updateScorePosition(scoreEventList.indexOf(scoreEvent));
 		return;
 	}
 
-	if (atStartingPosition) osmd.cursor.hide();
-
+	if (isAtStartingPosition) osmd.cursor.hide();
 	if (osmd.cursor.iterator.EndReached) {
 		osmd.cursor.reset();
 	} else {
 		osmd.cursor.next();
 	}
-	updateCursorPosition(nearestNoteObjectId);
+	updateCursorPositionToOjbectId(objectId);
 }
 
 function resetCursor() {
 	osmd.cursor.reset();
 	updateScorePosition(0);
+	scoreEventList.forEach(event => event.hasCompletedRepeat = false);
 }
 
 function updateScorePosition(index) {

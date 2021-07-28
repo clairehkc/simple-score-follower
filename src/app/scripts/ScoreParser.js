@@ -13,13 +13,16 @@ class ScoreParser {
 		let scoreEventId = 0;
 		let noteEventString;
 		let numberOfNotes;
+		let lastMeasureNumber;
+		let isLastNoteInEndRepeatMeasure = false;
+		let hasFoundBeginRepeat = false;
 
 		while (!osmd.cursor.iterator.EndReached) {
 			const notesUnderCursor = osmd.cursor.NotesUnderCursor();
+			let firstNote = notesUnderCursor[0];
 			if (notesUnderCursor.length === 1) {
-				const note = notesUnderCursor[0];
-				if (note.pitch) {
-					noteEventString = this.createNoteEventString(note) + (note.pitch.Octave + 3).toString();
+				if (firstNote.pitch) {
+					noteEventString = this.createNoteEventString(firstNote) + (firstNote.pitch.Octave + 3).toString();
 					numberOfNotes = 1;
 				} else {
 					noteEventString = "X";
@@ -33,15 +36,35 @@ class ScoreParser {
 					noteEventString = "X";
 				} else if (numberOfNotes === 1) {
 					const noteIndex = noteStrings.indexOf(filteredNoteStrings[0]);
-					const note = notesUnderCursor[noteIndex];
-					noteEventString = filteredNoteStrings[0] + (note.pitch.Octave + 3).toString();
+					firstNote = notesUnderCursor[noteIndex];
+					noteEventString = filteredNoteStrings[0] + (firstNote.pitch.Octave + 3).toString();
 				} else {
 					noteEventString = filteredNoteStrings.join("-");	
 				}
 			}
-			const measureNumber = notesUnderCursor[0].sourceMeasure.measureNumber;
-			const noteEventLength = notesUnderCursor[0].length && notesUnderCursor[0].length.realValue * 1000;
+			const measureNumber = firstNote.SourceMeasure.MeasureNumber;
+			const noteEventLength = firstNote.length && firstNote.length.realValue * 1000;
 			const objectIds = notesUnderCursor.map(note => note.NoteToGraphicalNoteObjectId);
+			
+			if (firstNote.SourceMeasure.beginsWithLineRepetition()) console.log("begin", firstNote.SourceMeasure, lastMeasureNumber, measureNumber);
+			if (firstNote.SourceMeasure.endsWithLineRepetition()) console.log("end", firstNote.SourceMeasure, lastMeasureNumber, measureNumber);
+
+			const isBeginRepeatEvent = (firstNote.SourceMeasure.beginsWithLineRepetition() && lastMeasureNumber !== measureNumber);
+			const isEndRepeatEvent = false;
+			const didPassEndRepeatEvent = isLastNoteInEndRepeatMeasure && !firstNote.SourceMeasure.endsWithLineRepetition();
+			if (didPassEndRepeatEvent) {
+				if (scoreEventId === 0) {
+					console.error("End repetition found at unexpected index 0");
+				} else {
+					scoreEventList[scoreEventId - 1].isEndRepeatEvent = true;
+					if (!hasFoundBeginRepeat) {
+						// if an end repeat has been found before a begin repeat, mark the first note event as the begin repeat point
+						scoreEventList[0].isBeginRepeatEvent = true;
+						hasFoundBeginRepeat = true;
+					}
+				}
+			}
+
 			const scoreEvent = {
 				noteEventString,
 				noteEventLength,
@@ -49,19 +72,27 @@ class ScoreParser {
 				measureNumber,
 				scoreEventId,
 				objectIds,
+				isBeginRepeatEvent,
+				isEndRepeatEvent,
+				hasCompletedRepeat: false,
 			}
 
 			scoreEventList.push(scoreEvent);
-			if (this.logTable) this.logResult(scoreEvent);
 			scoreEventId++;
+			lastMeasureNumber = measureNumber;
+			isLastNoteInEndRepeatMeasure = firstNote.SourceMeasure.endsWithLineRepetition();			
 			osmd.cursor.next();
 		}
 
+		// if score ends while moving through an end repeat measure, mark the last note event as the end repeat point
+		if (isLastNoteInEndRepeatMeasure) scoreEventList[scoreEventList.length - 1].isEndRepeatEvent = true;
+		if (this.logTable) scoreEventList.forEach(event => this.logResult(event));
+		console.log("points", scoreEventList.filter(event => event.isBeginRepeatEvent || event.isEndRepeatEvent));
 		return scoreEventList;
 	}
 
 	createNoteEventString(note) {
-		if (!note.pitch) return "X"; // probably a rest
+		if (!note.pitch) return "X"; // no sound expected
 		const osmdPitch = opensheetmusicdisplay.Pitch;
 		const accidentalType = opensheetmusicdisplay.AccidentalEnum[note.pitch.Accidental];
 		const noteLetterList = ["C", "D", "E", "F", "G", "A", "B"];
