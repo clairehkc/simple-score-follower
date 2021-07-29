@@ -126,8 +126,7 @@ function onReceiveMatchResult(scoreEventId, matchResult, matchTime) {
 	if (!matchResult) {
 		if (!isAttemptingRecovery) {
 			consecutiveMisses++;
-			console.log("consecutiveMisses", consecutiveMisses);
-			if (consecutiveMisses > 10) {
+			if (consecutiveMisses > 15) {
 				const nextExpectedMonophonicSequence = getNextExpectedMonophonicSequence(currentScoreIndex);
 				noteEventDetector.startAttemptRecovery(nextExpectedMonophonicSequence);
 				isAttemptingRecovery = true;
@@ -138,8 +137,10 @@ function onReceiveMatchResult(scoreEventId, matchResult, matchTime) {
 
 	// successful match
 	consecutiveMisses = 0;
-	isAttemptingRecovery = false;
-	console.log("onReceiveMatchResult", scoreEventId, currentScoreIndex);
+	if (isAttemptingRecovery) {
+		isAttemptingRecovery = false;
+		noteEventDetector.stopAttemptRecovery();
+	}
 
 	let newScoreIndex = currentScoreIndex;
 
@@ -148,7 +149,6 @@ function onReceiveMatchResult(scoreEventId, matchResult, matchTime) {
 	if (currentScoreEvent.isEndRepeatEvent && !currentScoreEvent.hasCompletedRepeat) {
 		const priorBeginRepeatEvents = beginRepeatEvents.filter(beginRepeatEvent => beginRepeatEvent.scoreEventId < currentScoreIndex);
 		const matchingBeginRepeatEvent = priorBeginRepeatEvents[priorBeginRepeatEvents.length - 1];
-		console.log("matchingBeginRepeatEvent", matchingBeginRepeatEvent);
 		scoreEventList[currentScoreIndex].hasCompletedRepeat = true;
 		updateCursorStartingPositionObjectId = currentScoreEvent.objectIds[0];
 		updateCursorPositionToOjbectId(matchingBeginRepeatEvent.objectIds[0], true);
@@ -161,12 +161,6 @@ function onReceiveMatchResult(scoreEventId, matchResult, matchTime) {
 			updateScorePosition(newScoreIndex);
 		} else {
 			// recovery match, jump forward
-			// const indexDiff = scoreEventId - currentScoreIndex;
-			// for (let i = 0; i < indexDiff; i++) {
-			// 	if (osmd.cursor.iterator.EndReached) break;
-			// 	newScoreIndex++;
-			// 	osmd.cursor.next();
-			// }
 			const matchedEvent = scoreEventList[scoreEventId];
 			updateCursorStartingPositionObjectId = currentScoreEvent.objectIds[0];
 			updateCursorPositionToOjbectId(matchedEvent.objectIds[0], true);
@@ -210,15 +204,22 @@ function getOSMDCoordinates(clickLocation) {
 
 function onScoreClick(clickEvent) {
 	if (!osmd || osmd.cursor.hidden) return;
+
   const clickLocation = new opensheetmusicdisplay.PointF2D(clickEvent.pageX, clickEvent.pageY);
   const sheetLocation = getOSMDCoordinates(clickLocation);
   const maxDist = new opensheetmusicdisplay.PointF2D(5, 5);
   const nearestNote = osmd.GraphicSheet.GetNearestNote(sheetLocation, maxDist).sourceNote;
   const nearestNoteObjectId = nearestNote.NoteToGraphicalNoteObjectId;
   if (nearestNoteObjectId) {
+  	if (isAttemptingRecovery) {
+  		isAttemptingRecovery = false;
+  		noteEventDetector.stopAttemptRecovery();
+  	}
+
   	const notesUnderCursor = osmd.cursor.NotesUnderCursor();
   	updateCursorStartingPositionObjectId = notesUnderCursor[0].NoteToGraphicalNoteObjectId;
   	updateCursorPositionToOjbectId(nearestNoteObjectId, true);
+  
   }
 }
 

@@ -45,9 +45,6 @@ class ScoreParser {
 			const measureNumber = firstNote.SourceMeasure.MeasureNumber;
 			const noteEventLength = firstNote.length && firstNote.length.realValue * 1000;
 			const objectIds = notesUnderCursor.map(note => note.NoteToGraphicalNoteObjectId);
-			
-			if (firstNote.SourceMeasure.beginsWithLineRepetition()) console.log("begin", firstNote.SourceMeasure, lastMeasureNumber, measureNumber);
-			if (firstNote.SourceMeasure.endsWithLineRepetition()) console.log("end", firstNote.SourceMeasure, lastMeasureNumber, measureNumber);
 
 			const isBeginRepeatEvent = (firstNote.SourceMeasure.beginsWithLineRepetition() && lastMeasureNumber !== measureNumber);
 			const isEndRepeatEvent = false;
@@ -87,7 +84,6 @@ class ScoreParser {
 		// if score ends while moving through an end repeat measure, mark the last note event as the end repeat point
 		if (isLastNoteInEndRepeatMeasure) scoreEventList[scoreEventList.length - 1].isEndRepeatEvent = true;
 		if (this.logTable) scoreEventList.forEach(event => this.logResult(event));
-		console.log("points", scoreEventList.filter(event => event.isBeginRepeatEvent || event.isEndRepeatEvent));
 		return scoreEventList;
 	}
 

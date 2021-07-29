@@ -7,7 +7,7 @@ class PitchDetector {
 		this.matchCallback = matchCallback;
 		this.isActive = false;
 		this.isAttemptingRecovery = false;
-		this.nextExpectedMonophonicSequence = [];
+		this.nextExpectedMonophonicSequence;
 		this.detector;
 		this.nextExpectedNoteEvent;
 		this.noteToFrequencyTable = {};
@@ -44,8 +44,7 @@ class PitchDetector {
 
 	getPitchCallback(err, frequency) {
 	  if (frequency && this.getRms() > 0.002) {
-	  	if (this.isAttemptingRecovery && this.nextExpectedMonophonicSequence.length > 0) {
-	  		console.log("isAttemptingRecovery", this.nextExpectedMonophonicSequence);
+	  	if (this.isAttemptingRecovery && this.nextExpectedMonophonicSequence && this.nextExpectedMonophonicSequence.length > 0) {
 	  		// keep attempting until cleared or heard all 3 notes
 				const nextExpectedMonophonicPitchEvent = this.nextExpectedMonophonicSequence[0];
 				const nextExpectedMonophonicPitch = this.noteToFrequencyTable[nextExpectedMonophonicPitchEvent.noteEventString];
@@ -54,13 +53,11 @@ class PitchDetector {
 	  			return;
 	  		}
 	  		
-	  		const matchResult = this.determineMatch(nextExpectedMonophonicPitch, frequency);
+	  		const matchResult = this.determineMatch(nextExpectedMonophonicPitch, frequency, true);
 	  		if (matchResult) this.nextExpectedMonophonicSequence.shift();
 	  		
 	  		if (this.nextExpectedMonophonicSequence.length === 0) {
-	  			console.log("recovery success", nextExpectedMonophonicPitchEvent.scoreEventId);
 	  			this.matchCallback(nextExpectedMonophonicPitchEvent.scoreEventId, true, -1); // set matchTime to -1 to override timing requirement
-	  			this.stopAttemptRecovery();
 	  		}
 	  	}
 
@@ -82,7 +79,7 @@ class PitchDetector {
 	  this.getPitch();
 	}
 
-	determineMatch(expectedPitch, detectedPitch) {
+	determineMatch(expectedPitch, detectedPitch, isAttemptingRecovery = false) {
 		const matchResult = Math.abs(expectedPitch - detectedPitch) < 5;
 		if (this.isUsingTestInterface) {
 			document.getElementById('detectedPitchValue').innerHTML = detectedPitch;
@@ -90,18 +87,21 @@ class PitchDetector {
 			document.getElementById('pitchMatchResult').innerHTML = matchResult;	
 		}
 
-		this.matchCallback(this.nextExpectedNoteEvent.scoreEventId, matchResult, Date.now());
+		if (!isAttemptingRecovery) this.matchCallback(this.nextExpectedNoteEvent.scoreEventId, matchResult, Date.now());
 		// if (!matchResult) console.log("expectedPitch, detectedPitch", this.nextExpectedNoteEvent.noteEventString, expectedPitch, " | ",  detectedPitch);
 		return matchResult	
 	}
 
 	startAttemptRecovery(sequence) {
+		console.log("start");
 		this.isAttemptingRecovery = true;
 		this.nextExpectedMonophonicSequence = sequence;
 	}
 
 	stopAttemptRecovery() {
+		console.log("stop");
 		this.isAttemptingRecovery = false;
+		this.nextExpectedMonophonicSequence = undefined;
 	}
 
 	activate() {

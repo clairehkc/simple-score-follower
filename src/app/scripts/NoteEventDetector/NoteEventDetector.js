@@ -113,6 +113,10 @@ class NoteEventDetector {
 		this.pitchDetector.startAttemptRecovery(sequence);
 	}
 
+	stopAttemptRecovery() {
+		this.pitchDetector.stopAttemptRecovery();
+	}
+
 	onStartStreamError(err) {
 		alert("Check microphone permissions");
 		console.error(err);
