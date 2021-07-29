@@ -93,13 +93,11 @@ class PitchDetector {
 	}
 
 	startAttemptRecovery(sequence) {
-		console.log("start");
 		this.isAttemptingRecovery = true;
 		this.nextExpectedMonophonicSequence = sequence;
 	}
 
 	stopAttemptRecovery() {
-		console.log("stop");
 		this.isAttemptingRecovery = false;
 		this.nextExpectedMonophonicSequence = undefined;
 	}

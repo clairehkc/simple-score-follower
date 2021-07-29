@@ -53,15 +53,17 @@ class ChordDetector {
 	}
 
 	getChordCallback(features) {
+		this.setRms(features.rms);
+		if (!this.isActive) return;
+		
 		let expectedChord = this.nextExpectedNoteEvent.noteEventString;
 		if (this.isUsingTestInterface) {
 			if (this.chordDetectionType === "TEMPLATE") expectedChord = this.getChordForNoteEvent(this.nextExpectedNoteEvent);
 			document.getElementById('expectedChordValue').innerHTML = expectedChord;
 		}
-		if (!expectedChord) console.error("Invalid note event for chord detector");
-		this.setRms(features.rms);
+		
 		if (features.rms < 0.03) return; // loudness
-		if (!this.isActive) return;
+		if (!expectedChord) console.error("Invalid note event for chord detector");
 		if (this.isUsingTestInterface && this.chordDetectionType === "TEMPLATE") {
 			this.determineMatchTemplate(expectedChord, features.chroma);
 		} else {
@@ -74,7 +76,6 @@ class ChordDetector {
 		if (this.isZeroVector(detectedChroma)) return;
 		const chordGuessList = this.getChordGuessForDetectedChroma(detectedChroma, 10);
 		const bestGuess = chordGuessList[0];
-		console.log("chordGuessList", chordGuessList);
 		// if expectedChord is found in the top n guesses, consider it a match
 		const matchInGuesses = chordGuessList.find(guess => guess.label === expectedChord);
 		const detectedChord = matchInGuesses && matchInGuesses.label || bestGuess.label;
@@ -106,7 +107,7 @@ class ChordDetector {
 
 		this.matchCallback(this.nextExpectedNoteEvent.scoreEventId, matchResult, Date.now());
 
-		if (!matchResult) console.log("expectedChord, detectedChord", expectedChord, " | ", detectedChord);
+		// if (!matchResult) console.log("expectedChord, detectedChord", expectedChord, " | ", detectedChord);
 		this.logResultTemplate(expectedChord, truncatedChroma, detectedChord, matchResult);
 		return matchResult;
 	}

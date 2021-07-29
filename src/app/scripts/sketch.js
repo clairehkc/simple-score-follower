@@ -75,7 +75,7 @@ function renderScore(xmlDoc) {
 	  scoreEventList.forEach(scoreEvent => noteEventDetector.addNoteEvent(scoreEvent.noteEventString, scoreEvent.scoreEventId));
 	  beginRepeatEvents = scoreEventList.filter(event => event.isBeginRepeatEvent);
 	  endRepeatEvents = scoreEventList.filter(event => event.isEndRepeatEvent);
-	  osmd.cursor.reset();
+	  resetCursor();
 	 	observeCursor();
 	  const currentScoreEvent = scoreEventList[currentScoreIndex];
 	  noteEventDetector.setNextExpectedNoteEvent(currentScoreEvent.noteEventString, currentScoreEvent.scoreEventId);
@@ -252,6 +252,10 @@ function updateCursorPositionToOjbectId(objectId, isAtStartingPosition = false) 
 function resetCursor() {
 	osmd.cursor.reset();
 	updateScorePosition(0);
+	if (isAttemptingRecovery) {
+		isAttemptingRecovery = false;
+		noteEventDetector.stopAttemptRecovery();
+	}
 	scoreEventList.forEach(event => event.hasCompletedRepeat = false);
 }
 
