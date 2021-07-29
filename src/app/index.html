@@ -20,43 +20,30 @@
   <script src="scripts/ScoreParser.js"></script>
   <script src="scripts/sketch.js"></script>
 
-  <style>
-    body {
-      margin-left: 16px;
-    }
-
-    .pageSection {
-      padding-top: 12px;
-      padding-bottom: 12px;
-    }
-
-    #headerButtons {
-      position: -webkit-sticky;
-      position: sticky;
-      top: 0;
-      z-index: 1;
-    }
-
-    #scoreContainer {
-      width: 100%;
-      z-index: 0;
-    }
-
-  </style>
+  <link rel="stylesheet" href="style/index.css">
 </head>
 
 <body>
-  <div class="pageSection" id="headerButtons">
-    <input type="file" id="scoreInput" accept="text/xml, .musicxml" style="display:none" />
-    <button type="button" id="scoreUploadButton">Upload</button>
-    <button type="button" id="startNoteEventDetector">Start Stream</button>
-    <button type="button" id="stopNoteEventDetector">Stop Stream</button>
-    <button type="button" id="skipEvent">Skip Event</button>
-    <button type="button" id="resetCursor">Reset</button>
-    <button type="button" id="saveParserLog">Save Parser Log</button>
+  <input type="file" id="scoreInput" accept="text/xml, .musicxml" style="display:none" />
+  <button type="button" id="scoreUploadButton">Upload</button>
+  <button type="button" id="showLibraryView">Library</button>
+  <button type="button" id="showScoreView">Score</button>
+  <div class="view" id="homeView">
   </div>
-  <div class="pageSection">
-    <div id="scoreContainer"></div>
+  <div class="view hidden" id="libraryView">
+    Library
+  </div>
+  <div class="view hidden" id="scoreView">
+    <div class="pageSection" id="headerButtons">
+      <button type="button" id="startNoteEventDetector">Start Stream</button>
+      <button type="button" id="stopNoteEventDetector">Stop Stream</button>
+      <button type="button" id="skipEvent">Skip Event</button>
+      <button type="button" id="resetCursor">Reset</button>
+      <button type="button" id="saveParserLog">Save Parser Log</button>
+    </div>
+    <div class="pageSection">
+      <div id="scoreContainer"></div>
+    </div>
   </div>
 </body>
 

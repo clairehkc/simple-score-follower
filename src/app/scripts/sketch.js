@@ -9,7 +9,14 @@ let endRepeatEvents = [];
 let currentScoreIndex = 0;
 let consecutiveMisses = 0;
 let updateCursorStartingPositionObjectId;
+let homeView, libraryView, scoreView, views;
 let startButton, stopButton, skipButton;
+
+const viewNames = {
+	HOME: "homeView",
+	LIBRARY: "libraryView",
+	SCORE: "scoreView",
+}
 
 let nextNoteEventLength = 0;
 let lastMatchAcceptTime = Date.now();
@@ -22,6 +29,11 @@ function setup() {
 	if (noteEventDetector.isUsingTestInterface) return;
 
 	scoreParser = new ScoreParser();
+
+	homeView = document.getElementById("homeView");
+	libraryView = document.getElementById("libraryView");
+	scoreView = document.getElementById("scoreView");
+	views = [homeView, libraryView, scoreView];
 
 	const scoreInput = document.getElementById("scoreInput");
 	scoreContainer = document.getElementById("scoreContainer");
@@ -42,6 +54,8 @@ function setup() {
 
 	document.getElementById("scoreUploadButton").addEventListener("click", () => scoreInput.click());
 	document.getElementById("resetCursor").addEventListener("click", resetCursor);
+	document.getElementById("showLibraryView").addEventListener("click", () => showView(viewNames.LIBRARY));
+	document.getElementById("showScoreView").addEventListener("click", () => showView(viewNames.SCORE));
 	scoreInput.addEventListener("change", uploadScore);
 }
 
@@ -82,6 +96,23 @@ function renderScore(xmlDoc) {
 	  startButton.disabled = false;
 	  osmd.cursor.hide();
 	});
+}
+
+function showView(viewName) {
+	switch (viewName) {
+		case viewNames.HOME:
+			homeView.setAttribute('class', 'view visible');
+			break;
+		case viewNames.LIBRARY:
+			libraryView.setAttribute('class', 'view visible');
+			break;
+		case viewNames.SCORE:
+			scoreView.setAttribute('class', 'view visible');
+			break;
+	}
+
+	const viewsToHide = views.filter(view => view.id !== viewName);
+	viewsToHide.forEach(view => view.setAttribute('class', 'view hidden'));
 }
 
 function onDetectorReady() {
