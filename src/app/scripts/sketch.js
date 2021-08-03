@@ -10,7 +10,6 @@ let currentScoreIndex = 0;
 let consecutiveMisses = 0;
 let updateCursorStartingPositionObjectId;
 let homeView, libraryView, scoreView, views;
-let libraryFilesPageSection, libraryFileList = [];
 let startButton, stopButton, skipButton;
 
 const viewNames = {
@@ -36,16 +35,6 @@ function setup() {
 	scoreView = document.getElementById("scoreView");
 	views = [homeView, libraryView, scoreView];
 
-	libraryFilesPageSection = document.getElementById("libraryFilesPageSection");
-	for (let i = 0; i < localStorage.length; i++)  {
-	  const keyName = localStorage.key(i);
-	  if (keyName.startsWith("SFA-")) {
-	  	libraryFileList.push(localStorage.key(i));
-	  }
-	}
-	libraryFilesPageSection.innerHTML = libraryFileList.toString();
-
-
 	scoreInput = document.getElementById("scoreInput");
 	scoreContainer = document.getElementById("scoreContainer");
 	osmd = new opensheetmusicdisplay.OpenSheetMusicDisplay(scoreContainer);
@@ -68,6 +57,33 @@ function setup() {
 	document.getElementById("showLibraryView").addEventListener("click", () => showView(viewNames.LIBRARY));
 	document.getElementById("showScoreView").addEventListener("click", () => showView(viewNames.SCORE));
 	scoreInput.addEventListener("change", uploadScore);
+	updateLibraryView();
+}
+
+function updateLibraryView() {
+	const libraryFilesPageSection = document.getElementById("libraryFilesPageSection");
+	const libraryFileList = [];
+	
+	for (let i = 0; i < localStorage.length; i++)  {
+	  const keyName = localStorage.key(i);
+	  if (keyName.startsWith("SFA-")) {
+	  	libraryFileList.push(localStorage.key(i));
+	  }
+	}
+	
+	libraryFileList.forEach(fileName => {
+		const fileView = document.createElement("div");
+		fileView.className = "fileView";
+		const name = fileName.replace("SFA-", "");
+		fileView.id = fileName;
+		fileView.innerHTML = name;
+		libraryFilesPageSection.appendChild(fileView);
+	});
+
+	const fileViews = document.getElementsByClassName("fileView");
+	Array.from(fileViews).forEach((fileView) => {
+    fileView.addEventListener('click', () => loadScore(fileView.id));
+  });
 }
 
 function uploadScore() {
@@ -92,11 +108,16 @@ function uploadScore() {
 	reader.readAsText(scoreInput.files[0]);
 }
 
+function loadScore(fileName) {
+	const xmlDoc = localStorage.getItem(fileName);
+	showView(viewNames.SCORE);
+	renderScore(xmlDoc);
+}
+
 function saveScoreToLibrary(fileName, fileText) {
 	const savedFileName = 'SFA-' + fileName;
 	localStorage.setItem(savedFileName, fileText);
-	libraryFileList.push(savedFileName);
-	libraryFilesPageSection.innerHTML = libraryFileList;
+	updateLibraryView(savedFileName);
 }
 
 function loadSavedScore(savedFileName) {
