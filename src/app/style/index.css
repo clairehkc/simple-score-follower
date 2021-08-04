@@ -71,14 +71,6 @@ a:hover {
   flex: 1 0 auto;
 }
 
-.hidden {
-  display: none;
- }
- 
-.visible {
-  display: block;
-}
-
 .pageSection {
   padding-bottom: 12px;
 }
@@ -121,10 +113,23 @@ a:hover {
   background-color: var(--disabled);
 }
 
+.disabled:hover {
+  cursor: not-allowed;
+}
+
+.hidden {
+  display: none;
+ }
+ 
+.visible {
+  display: block;
+}
+
 #scoreContainer {
   width: 100%;
   z-index: 0;
   background-color: var(--white);
+  cursor: pointer;
 }
 
 #defaultScoreViewMessageContainer {
@@ -132,6 +137,7 @@ a:hover {
   align-items: center;
   justify-content: center;
   height: 100%;
+  margin-top: -72px;
 }
 
 #defaultScoreViewMessageContainer div {

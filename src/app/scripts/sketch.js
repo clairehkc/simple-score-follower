@@ -11,7 +11,7 @@ let currentScoreIndex = 0;
 let consecutiveMisses = 0;
 let updateCursorStartingPositionObjectId;
 let libraryView, scoreView;
-let startButton, stopButton, skipButton, resetButton;
+let startButton, stopButton, skipButton, resetButton, controlButtons;
 
 const viewNames = {
 	LIBRARY: "libraryView",
@@ -42,6 +42,7 @@ function setup() {
 	stopButton = document.getElementById("stopControlButton");
 	skipButton = document.getElementById("skipControlButton");
 	resetButton = document.getElementById("resetControlButton");
+	controlButtons = [startButton, stopButton, skipButton, resetButton];
 
 	startButton.addEventListener("click", startStream);
 	stopButton.addEventListener("click", stopStream);
@@ -147,10 +148,12 @@ function renderScore(xmlDoc) {
 	 	observeCursor();
 	  const currentScoreEvent = scoreEventList[currentScoreIndex];
 	  noteEventDetector.setNextExpectedNoteEvent(currentScoreEvent.noteEventString, currentScoreEvent.scoreEventId);
-	  startButton.setAttribute('class', 'controlButton enabled');
 	  osmd.cursor.hide();
 	  scoreRendered = true;
-	  document.getElementById("defaultScoreViewMessageContainer").setAttribute('class', 'hidden');
+	  document.getElementById("controlBar").setAttribute('class', 'visible');
+	  controlButtons.forEach(button => button.setAttribute('class', 'controlButton disabled'));
+	  startButton.setAttribute('class', 'controlButton enabled');
+	  document.getElementById("defaultScoreViewMessageContainer").remove();
 	});
 }
 
@@ -181,20 +184,16 @@ function onDetectorReady() {
 function startStream() {
 	if (!scoreRendered) return;
 	noteEventDetector.startStream();
+	controlButtons.forEach(button => button.setAttribute('class', 'controlButton enabled'));
 	startButton.setAttribute('class', 'controlButton disabled');
-	stopButton.setAttribute('class', 'controlButton enabled');
-	skipButton.setAttribute('class', 'controlButton enabled');
-	resetButton.setAttribute('class', 'controlButton enabled');
 }
 
 function stopStream() {
 	if (!noteEventDetector.streamIsActive) return;
 	noteEventDetector.stopStream();
 	osmd.cursor.hide();
+	controlButtons.forEach(button => button.setAttribute('class', 'controlButton disabled'));
 	startButton.setAttribute('class', 'controlButton enabled');
-	stopButton.setAttribute('class', 'controlButton disabled');
-	skipButton.setAttribute('class', 'controlButton disabled');
-	resetButton.setAttribute('class', 'controlButton disabled');
 }
 
 function getNextExpectedMonophonicSequence(index) {
