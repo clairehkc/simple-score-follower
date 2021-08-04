@@ -3,17 +3,17 @@ let scoreContainer, scoreInput;
 let scoreParser, noteEventDetector;
 let isDetectorReady = false;
 let isAttemptingRecovery = false;
+let scoreRendered = false;
 let scoreEventList = [];
 let beginRepeatEvents = [];
 let endRepeatEvents = [];
 let currentScoreIndex = 0;
 let consecutiveMisses = 0;
 let updateCursorStartingPositionObjectId;
-let homeView, libraryView, scoreView, views;
-let startButton, stopButton, skipButton;
+let libraryView, scoreView;
+let startButton, stopButton, skipButton, resetButton;
 
 const viewNames = {
-	HOME: "homeView",
 	LIBRARY: "libraryView",
 	SCORE: "scoreView",
 }
@@ -30,32 +30,27 @@ function setup() {
 
 	scoreParser = new ScoreParser();
 
-	homeView = document.getElementById("homeView");
 	libraryView = document.getElementById("libraryView");
 	scoreView = document.getElementById("scoreView");
-	views = [homeView, libraryView, scoreView];
 
 	scoreInput = document.getElementById("scoreInput");
 	scoreContainer = document.getElementById("scoreContainer");
 	osmd = new opensheetmusicdisplay.OpenSheetMusicDisplay(scoreContainer);
 	scoreContainer.addEventListener("click", onScoreClick);
 
-	startButton = document.getElementById("startNoteEventDetector");
-	stopButton = document.getElementById("stopNoteEventDetector");
-	skipButton = document.getElementById("skipEvent");
+	startButton = document.getElementById("startControlButton");
+	stopButton = document.getElementById("stopControlButton");
+	skipButton = document.getElementById("skipControlButton");
+	resetButton = document.getElementById("resetControlButton");
 
 	startButton.addEventListener("click", startStream);
 	stopButton.addEventListener("click", stopStream);
 	skipButton.addEventListener("click", skipEvent);
+	resetButton.addEventListener("click", onResetButtonClick);
 
-	startButton.disabled = true;
-	stopButton.disabled = true;
-	skipButton.disabled = true;
-
-	document.getElementById("scoreUploadButton").addEventListener("click", () => scoreInput.click());
-	document.getElementById("resetCursor").addEventListener("click", resetCursor);
-	document.getElementById("showLibraryView").addEventListener("click", () => showView(viewNames.LIBRARY));
-	document.getElementById("showScoreView").addEventListener("click", () => showView(viewNames.SCORE));
+	document.getElementById("uploadNavButton").addEventListener("click", () => scoreInput.click());
+	document.getElementById("libraryNavButton").addEventListener("click", () => showView(viewNames.LIBRARY));
+	document.getElementById("scoreNavButton").addEventListener("click", () => showView(viewNames.SCORE));
 	scoreInput.addEventListener("change", uploadScore);
 	updateLibraryView();
 }
@@ -63,6 +58,7 @@ function setup() {
 function updateLibraryView() {
 	const libraryFilesPageSection = document.getElementById("libraryFilesPageSection");
 	const libraryFileList = [];
+	libraryFilesPageSection.innerHTML = '';
 	
 	for (let i = 0; i < localStorage.length; i++)  {
 	  const keyName = localStorage.key(i);
@@ -76,7 +72,7 @@ function updateLibraryView() {
 		fileView.className = "fileView";
 		const name = fileName.replace("SFA-", "");
 		fileView.id = fileName;
-		fileView.innerHTML = name;
+		fileView.appendChild(document.createTextNode(name));
 		libraryFilesPageSection.appendChild(fileView);
 	});
 
@@ -109,6 +105,9 @@ function uploadScore() {
 }
 
 function loadScore(fileName) {
+	if (noteEventDetector.streamIsActive) stopStream();
+	noteEventDetector.reset();
+
 	const xmlDoc = localStorage.getItem(fileName);
 	showView(viewNames.SCORE);
 	renderScore(xmlDoc);
@@ -148,26 +147,29 @@ function renderScore(xmlDoc) {
 	 	observeCursor();
 	  const currentScoreEvent = scoreEventList[currentScoreIndex];
 	  noteEventDetector.setNextExpectedNoteEvent(currentScoreEvent.noteEventString, currentScoreEvent.scoreEventId);
-	  startButton.disabled = false;
+	  startButton.setAttribute('class', 'controlButton enabled');
 	  osmd.cursor.hide();
+	  scoreRendered = true;
+	  document.getElementById("defaultScoreViewMessageContainer").setAttribute('class', 'hidden');
 	});
 }
 
 function showView(viewName) {
+	const views = [libraryView, scoreView];
+	const buttons = [uploadNavButton, libraryNavButton, scoreNavButton];
+	views.forEach(view => view.setAttribute('class', 'view hidden'));
+	buttons.forEach(button => button.setAttribute('class', 'navButton inactive'));
+
 	switch (viewName) {
-		case viewNames.HOME:
-			homeView.setAttribute('class', 'view visible');
-			break;
 		case viewNames.LIBRARY:
 			libraryView.setAttribute('class', 'view visible');
+			libraryNavButton.setAttribute('class', 'navButton active');
 			break;
 		case viewNames.SCORE:
 			scoreView.setAttribute('class', 'view visible');
+			scoreNavButton.setAttribute('class', 'navButton active');
 			break;
 	}
-
-	const viewsToHide = views.filter(view => view.id !== viewName);
-	viewsToHide.forEach(view => view.setAttribute('class', 'view hidden'));
 }
 
 function onDetectorReady() {
@@ -177,18 +179,22 @@ function onDetectorReady() {
 }
 
 function startStream() {
+	if (!scoreRendered) return;
 	noteEventDetector.startStream();
-	startButton.disabled = true;
-	stopButton.disabled = false;
-	skipButton.disabled = false;
+	startButton.setAttribute('class', 'controlButton disabled');
+	stopButton.setAttribute('class', 'controlButton enabled');
+	skipButton.setAttribute('class', 'controlButton enabled');
+	resetButton.setAttribute('class', 'controlButton enabled');
 }
 
 function stopStream() {
+	if (!noteEventDetector.streamIsActive) return;
 	noteEventDetector.stopStream();
 	osmd.cursor.hide();
-	startButton.disabled = false;
-	stopButton.disabled = true;
-	skipButton.disabled = true;
+	startButton.setAttribute('class', 'controlButton enabled');
+	stopButton.setAttribute('class', 'controlButton disabled');
+	skipButton.setAttribute('class', 'controlButton disabled');
+	resetButton.setAttribute('class', 'controlButton disabled');
 }
 
 function getNextExpectedMonophonicSequence(index) {
@@ -264,6 +270,7 @@ function onReceiveMatchResult(scoreEventId, matchResult, matchTime) {
 }
 
 function skipEvent() {
+	if (!noteEventDetector.streamIsActive) return;
 	onReceiveMatchResult(currentScoreIndex, true);
 }
 
@@ -332,6 +339,11 @@ function updateCursorPositionToOjbectId(objectId, isAtStartingPosition = false) 
 		osmd.cursor.next();
 	}
 	updateCursorPositionToOjbectId(objectId);
+}
+
+function onResetButtonClick() {
+	if (!noteEventDetector.streamIsActive) return;
+	resetCursor();
 }
 
 function resetCursor() {

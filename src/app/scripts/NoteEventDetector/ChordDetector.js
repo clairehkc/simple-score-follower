@@ -49,6 +49,10 @@ class ChordDetector {
 	}
 
 	startChordDetection() {
+		if (!this.analyzer) {
+			console.error("Chord detector is not running");
+			return;
+		}
 		this.analyzer.start();
 	}
 

@@ -39,6 +39,10 @@ class PitchDetector {
 	}
 
 	getPitch() {
+		if (!this.detector) {
+			console.error("Pitch detector is not running");
+			return;
+		}
 		this.detector.getPitch(this.getPitchCallback.bind(this));
 	}
 

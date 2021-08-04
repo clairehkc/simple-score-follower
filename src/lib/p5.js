@@ -51258,7 +51258,7 @@
                   var loadingScreen = document.getElementById(_this._loadingScreenId);
                   if (!loadingScreen) {
                     loadingScreen = document.createElement('div');
-                    loadingScreen.innerHTML = 'Loading...';
+                    // loadingScreen.innerHTML = 'Loading...';
                     loadingScreen.style.position = 'absolute';
                     loadingScreen.id = _this._loadingScreenId;
                     var _node = _this._userNode || document.body;

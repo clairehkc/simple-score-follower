@@ -1,28 +1,192 @@
+:root {
+  --base: #782af5;
+  --lighter: #c29cff;
+  --hover: #ece0ff;
+  --active: #6421d0;
+  --text: #252525;
+  --white: #fff;
+  --disabled: #a8a0b5;
+}
+
+html, body {
+  height: 100%;
+}
+
 body {
-  margin-left: 16px;
+  font: 16px "Arial", sans-serif;
+  margin: 0;
+  background-color: var(--base);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+}
+
+a {
+  color: #98a0ea;
+}
+
+a:hover {
+  color: #b8bdea;
+}
+
+#navBar {
+  height: 64px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.navButton {
+  height: 100%;
+  width: 50%;
+  padding: 12px;
+  display: flex;
+  justify-content: center;
+}
+
+.navButton:hover {
+  background-color: var(--hover);
+  cursor: pointer;
+}
+
+#scoreNavButton {
+  margin-left: 4px;
+  margin-right: 4px;
+}
+
+.navButtonIcon {
+  height: 100%;
+}
+
+.active {
+  background-color: var(--active);
+}
+
+.inactive {
+  background-color: var(--lighter);
+}
+
+.view {
+  flex: 1 0 auto;
+}
+
+.hidden {
+  display: none;
+ }
+ 
+.visible {
+  display: block;
 }
 
 .pageSection {
-  padding-top: 12px;
   padding-bottom: 12px;
 }
 
-#headerButtons {
+#controlBar {
   position: -webkit-sticky;
   position: sticky;
   top: 0;
   z-index: 1;
+  height: 32px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin-top: 4px;
+  margin-bottom: 24px;
+}
+
+.controlButton {
+  height: 100%;
+  width: 50%;
+  padding: 12px;
+  display: flex;
+  justify-content: center;
+}
+
+.controlButtonIcon {
+  height: 100%;
+}
+
+.enabled {
+  background-color: var(--lighter);
+}
+
+.enabled:hover {
+  background-color: var(--hover);
+  cursor: pointer;
+}
+
+.disabled {
+  background-color: var(--disabled);
 }
 
 #scoreContainer {
   width: 100%;
   z-index: 0;
+  background-color: var(--white);
 }
 
-.hidden {
-	display: none;
- }
- 
-.visible {
-	display: block;
+#defaultScoreViewMessageContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+#defaultScoreViewMessageContainer div {
+  width: 576px;
+  height: 288px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+#defaultScoreViewMessageTitle {
+  font-size: 28px;
+}
+
+#libraryView {
+  margin: 16px;
+}
+
+.fileView {
+	height: 22px;
+  line-height: 22px;
+  padding-left: 16px;
+	padding-top: 8px;
+	padding-bottom: 8px;
+	margin-top: 4px;
+	margin-bottom: 4px;
+	background-color: var(--lighter);
+}
+
+.fileView:hover {
+	background-color: var(--hover);
+	cursor: pointer;
+}
+
+#footer {
+  height: 24px;
+  display: flex;
+  justify-content: center;
+  font-size: 12px;
+  flex-shrink: 0;
+  padding-bottom: 12px;
+}
+
+.footerItem {
+  margin-left: 8px;
+  margin-right: 8px;
+}
+
+#githubIconContainer {
+  padding-top: 4px;
+  height: 24px;
+  width: 24px;
+}
+
+#githubIconContainer img {
+  height: 100%;
 }

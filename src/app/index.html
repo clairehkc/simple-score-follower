@@ -25,25 +25,53 @@
 
 <body>
   <input type="file" id="scoreInput" accept="text/xml, .musicxml" style="display:none" />
-  <button type="button" id="scoreUploadButton">Upload</button>
-  <button type="button" id="showLibraryView">Library</button>
-  <button type="button" id="showScoreView">Score</button>
-  <div class="view" id="homeView">
+  <div id="navBar">
+    <div class="navButton inactive" id="uploadNavButton">
+      <img class="navButtonIcon" src="style/icons/upload.svg" />
+    </div>
+    <div class="navButton active" id="scoreNavButton">
+      <img class ="navButtonIcon" src="style/icons/sheet-music.svg" />
+    </div>
+    <div class="navButton inactive" id="libraryNavButton">
+      <img class="navButtonIcon" src="style/icons/agenda.svg" />
+    </div>
   </div>
   <div class="view hidden" id="libraryView">
-    Library
     <div class="pageSection" id="libraryFilesPageSection"></div>
   </div>
-  <div class="view hidden" id="scoreView">
-    <div class="pageSection" id="headerButtons">
-      <button type="button" id="startNoteEventDetector">Start Stream</button>
-      <button type="button" id="stopNoteEventDetector">Stop Stream</button>
-      <button type="button" id="skipEvent">Skip Event</button>
-      <button type="button" id="resetCursor">Reset</button>
-      <button type="button" id="saveParserLog">Save Parser Log</button>
+  <div class="view" id="scoreView">
+    <div id="controlBar">
+      <div class="controlButton disabled" id="startControlButton">
+        <img class="controlButtonIcon" src="style/icons/microphone.svg" />
+      </div>
+      <div class="controlButton disabled" id="stopControlButton">
+        <img class="controlButtonIcon" src="style/icons/mute-microphone.svg" />
+      </div>
+      <div class="controlButton disabled" id="resetControlButton">
+        <img class="controlButtonIcon" src="style/icons/rewind.svg" />
+      </div>
+      <div class="controlButton disabled" id="skipControlButton">
+        <img class="controlButtonIcon" src="style/icons/right-arrow.svg" />
+      </div>
     </div>
     <div class="pageSection">
       <div id="scoreContainer"></div>
+    </div>
+    <div id="defaultScoreViewMessageContainer">
+      <div>
+        <h2 id="defaultScoreViewMessageTitle">
+          Simple Score Follower
+        </h2>
+        Upload a score or view a sample score
+      </div>
+    </div>
+  </div>
+  <div id="footer">
+    <div class="footerItem">
+      <p> Icons by <a href="https://www.freepik.com" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a> </p>
+    </div>
+    <div class="footerItem" id="githubIconContainer">
+      <a href="https://github.com/clairehkc/score-following"><img src="style/icons/GitHub-Mark-Light-64px.png" /></a>
     </div>
   </div>
 </body>
