@@ -15,22 +15,24 @@ html, body {
 body {
   font: 16px "Arial", sans-serif;
   margin: 0;
-  background-color: var(--base);
+  background: rgb(120,42,245);
+  background: linear-gradient(180deg, rgba(120,42,245,1) 60%, rgba(166,110,254,1) 100%);  
   color: var(--text);
   display: flex;
   flex-direction: column;
 }
 
 a {
-  color: #98a0ea;
+  text-decoration: none;
+  color: var(--lighter);
 }
 
 a:hover {
-  color: #b8bdea;
+  color: var(--hover);
 }
 
 #navBar {
-  height: 64px;
+  height: 52px;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -132,15 +134,14 @@ a:hover {
   cursor: pointer;
 }
 
-#defaultScoreViewMessageContainer {
+.defaultViewMessageContainer {
   display: flex;
   align-items: center;
   justify-content: center;
   height: 100%;
-  margin-top: -72px;
 }
 
-#defaultScoreViewMessageContainer div {
+.defaultViewMessageContainer div {
   width: 576px;
   height: 288px;
   display: flex;
@@ -149,8 +150,16 @@ a:hover {
   justify-content: center;
 }
 
-#defaultScoreViewMessageTitle {
+.defaultViewMessageContainer h2 {
   font-size: 28px;
+}
+
+#defaultScoreViewMessageContainer {
+  margin-top: -72px;
+}
+
+#defaultLibraryViewMessageContainer {
+  margin-top: -12px;
 }
 
 #libraryView {
@@ -158,9 +167,9 @@ a:hover {
 }
 
 .fileView {
-	height: 22px;
-  line-height: 22px;
-  padding-left: 16px;
+	height: 24px;
+  display: flex;
+  padding-left: 12px;
 	padding-top: 8px;
 	padding-bottom: 8px;
 	margin-top: 4px;
@@ -171,6 +180,19 @@ a:hover {
 .fileView:hover {
 	background-color: var(--hover);
 	cursor: pointer;
+}
+
+.fileView div {
+  line-height: 24px;
+}
+
+.fileView img {
+  height: 24px;
+  margin-right: 12px;
+}
+
+.fileViewDeleteIcon {
+  margin-left: auto;
 }
 
 #footer {

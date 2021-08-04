@@ -67,20 +67,46 @@ function updateLibraryView() {
 	  	libraryFileList.push(localStorage.key(i));
 	  }
 	}
+
+	const defaultLibraryViewMessage = document.getElementById("defaultLibraryViewMessageContainer");
+	if (libraryFileList.length > 0) {
+		defaultLibraryViewMessage.setAttribute('class', 'hidden');
+	} else {
+		defaultLibraryViewMessage.setAttribute('class', 'defaultViewMessageContainer');
+	}
 	
 	libraryFileList.forEach(fileName => {
 		const fileView = document.createElement("div");
 		fileView.className = "fileView";
-		const name = fileName.replace("SFA-", "");
+		const savedName = fileName.replace("SFA-", "");
 		fileView.id = fileName;
-		fileView.appendChild(document.createTextNode(name));
+		fileView.title = "Load Score";
+
+		const fileViewFileIcon = document.createElement("img");
+		fileViewFileIcon.className = "fileViewFileIcon";
+		fileViewFileIcon.src = "style/icons/music-file.svg";
+		fileView.appendChild(fileViewFileIcon);
+
+		const fileViewText = document.createElement("div");
+		fileViewText.appendChild(document.createTextNode(savedName));
+		fileView.appendChild(fileViewText);
 		libraryFilesPageSection.appendChild(fileView);
+
+		const fileViewDeleteIcon = document.createElement("img");
+		fileViewDeleteIcon.className = "fileViewDeleteIcon";
+		fileViewDeleteIcon.src = "style/icons/delete.svg";
+		fileViewDeleteIcon.title = "Delete Score"
+		fileViewDeleteIcon.onmouseover = () => fileViewDeleteIcon.src = "style/icons/delete-dark.svg";
+		fileViewDeleteIcon.onmouseout = () => fileViewDeleteIcon.src = "style/icons/delete.svg";
+		fileViewDeleteIcon.onclick = (event) => {
+			localStorage.removeItem(fileView.id);
+			event.stopPropagation();
+			updateLibraryView();
+		}
+		fileView.appendChild(fileViewDeleteIcon);
+		fileView.addEventListener('click', () => loadScoreFromLibrary(fileView.id));
 	});
 
-	const fileViews = document.getElementsByClassName("fileView");
-	Array.from(fileViews).forEach((fileView) => {
-    fileView.addEventListener('click', () => loadScore(fileView.id));
-  });
 }
 
 function uploadScore() {
@@ -105,7 +131,7 @@ function uploadScore() {
 	reader.readAsText(scoreInput.files[0]);
 }
 
-function loadScore(fileName) {
+function loadScoreFromLibrary(fileName) {
 	if (noteEventDetector.streamIsActive) stopStream();
 	noteEventDetector.reset();
 
@@ -120,23 +146,8 @@ function saveScoreToLibrary(fileName, fileText) {
 	updateLibraryView(savedFileName);
 }
 
-function loadSavedScore(savedFileName) {
-	if (noteEventDetector.streamIsActive) stopStream();
-	noteEventDetector.reset();
-
-	const onUploadScore = (xmlDoc) => {
-		showView(viewNames.SCORE);
-		renderScore(xmlDoc);
-	}
-
-	const domParser = new DOMParser();
-	const savedFileText = localStorage.getItem(savedFileName);
-	const xmlDoc = domParser.parseFromString(savedFileText, "text/xml");
-	onUploadScore(xmlDoc);
-}
-
 function loadSampleScore() {
-	
+
 }
 
 function renderScore(xmlDoc) {
@@ -153,11 +164,11 @@ function renderScore(xmlDoc) {
 	  const currentScoreEvent = scoreEventList[currentScoreIndex];
 	  noteEventDetector.setNextExpectedNoteEvent(currentScoreEvent.noteEventString, currentScoreEvent.scoreEventId);
 	  osmd.cursor.hide();
-	  scoreRendered = true;
 	  document.getElementById("controlBar").setAttribute('class', 'visible');
 	  controlButtons.forEach(button => button.setAttribute('class', 'controlButton disabled'));
 	  startButton.setAttribute('class', 'controlButton enabled');
-	  document.getElementById("defaultScoreViewMessageContainer").remove();
+	  if (!scoreRendered) document.getElementById("defaultScoreViewMessageContainer").remove();
+	  scoreRendered = true;
 	});
 }
 
@@ -186,10 +197,20 @@ function onDetectorReady() {
 }
 
 function startStream() {
-	if (!scoreRendered) return;
+	if (!scoreRendered || noteEventDetector.streamIsActive) return;
 	noteEventDetector.startStream();
+
 	controlButtons.forEach(button => button.setAttribute('class', 'controlButton enabled'));
 	startButton.setAttribute('class', 'controlButton disabled');
+
+	const boundingRect = startButton.getBoundingClientRect();
+	const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+	const startButtonTop = boundingRect.top + scrollTop;
+	console.log("startButtonTop", startButtonTop);
+	window.scroll({
+	  top: parseFloat(startButtonTop),
+	  behavior: 'smooth'
+	});
 }
 
 function stopStream() {
@@ -200,7 +221,7 @@ function stopStream() {
 	startButton.setAttribute('class', 'controlButton enabled');
 }
 
-function getNextExpectedMonophonicSequence(index) {
+function getNextExpectedMonophonicSequence(index, sequenceLength = 3) {
 	if (index + 1 >= scoreEventList.length) return;
 	let sequence = [];
 	for (let i = index + 1; i < scoreEventList.length; i++) {
@@ -208,10 +229,8 @@ function getNextExpectedMonophonicSequence(index) {
 		if (currentEvent.numberOfNotes === 1) {
 			const noteEvent = noteEventDetector.createNoteEvent(currentEvent.noteEventString, currentEvent.scoreEventId);
 			sequence.push(noteEvent);
-		} else {
-			sequence = [];
 		}
-		if (sequence.length === 3) break;
+		if (sequence.length === sequenceLength) break;
 	}
 	return sequence;
 }

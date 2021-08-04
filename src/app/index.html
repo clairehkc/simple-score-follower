@@ -26,40 +26,48 @@
 <body>
   <input type="file" id="scoreInput" accept="text/xml, .musicxml" style="display:none" />
   <div id="navBar">
-    <div class="navButton inactive" id="uploadNavButton">
+    <div class="navButton inactive" id="uploadNavButton" title="Upload Score">
       <img class="navButtonIcon" src="style/icons/upload.svg" />
     </div>
-    <div class="navButton active" id="scoreNavButton">
+    <div class="navButton active" id="scoreNavButton" title="Score View">
       <img class ="navButtonIcon" src="style/icons/sheet-music.svg" />
     </div>
-    <div class="navButton inactive" id="libraryNavButton">
+    <div class="navButton inactive" id="libraryNavButton" title="Library">
       <img class="navButtonIcon" src="style/icons/agenda.svg" />
     </div>
   </div>
   <div class="view hidden" id="libraryView">
     <div class="pageSection" id="libraryFilesPageSection"></div>
+    <div class="defaultViewMessageContainer" id="defaultLibraryViewMessageContainer">
+      <div>
+        <h2>
+          Library
+        </h2>
+        <p>Your uploaded files will be saved to your Library</p>
+      </div>
+    </div>
   </div>
   <div class="view" id="scoreView">
     <div class="hidden" id="controlBar">
-      <div class="controlButton hidden disabled" id="startControlButton">
+      <div class="controlButton hidden disabled" id="startControlButton" title="Start Following">
         <img class="controlButtonIcon" src="style/icons/microphone.svg" />
       </div>
-      <div class="controlButton hidden disabled" id="stopControlButton">
+      <div class="controlButton hidden disabled" id="stopControlButton" title="Stop Following">
         <img class="controlButtonIcon" src="style/icons/mute-microphone.svg" />
       </div>
-      <div class="controlButton hidden disabled" id="resetControlButton">
-        <img class="controlButtonIcon" src="style/icons/rewind.svg" />
+      <div class="controlButton hidden disabled" id="resetControlButton" title="Reset Cursor to Beginning">
+        <img class="controlButtonIcon" src="style/icons/rewind-sign.svg" />
       </div>
-      <div class="controlButton hidden disabled" id="skipControlButton">
-        <img class="controlButtonIcon" src="style/icons/right-arrow.svg" />
+      <div class="controlButton hidden disabled" id="skipControlButton" title="Move Cursor Forward">
+        <img class="controlButtonIcon" src="style/icons/fast-forward-button.svg" />
       </div>
     </div>
     <div class="pageSection">
       <div id="scoreContainer"></div>
     </div>
-    <div id="defaultScoreViewMessageContainer">
+    <div class="defaultViewMessageContainer" id="defaultScoreViewMessageContainer">
       <div>
-        <h2 id="defaultScoreViewMessageTitle">
+        <h2>
           Simple Score Follower
         </h2>
         <p><a onclick="scoreInput.click()" href="#">Upload a score</a> or <a onclick="loadSampleScore()" href="#">load a sample score</a></p>
