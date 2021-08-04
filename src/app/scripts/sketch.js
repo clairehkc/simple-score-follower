@@ -135,6 +135,10 @@ function loadSavedScore(savedFileName) {
 	onUploadScore(xmlDoc);
 }
 
+function loadSampleScore() {
+	
+}
+
 function renderScore(xmlDoc) {
 	const loadPromise = osmd.load(xmlDoc);
 
