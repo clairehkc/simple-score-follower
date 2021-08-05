@@ -151,7 +151,7 @@ a:hover {
 }
 
 .defaultViewMessageContainer h2 {
-  font-size: 28px;
+  font-size: 32px;
 }
 
 #defaultScoreViewMessageContainer {
@@ -169,9 +169,7 @@ a:hover {
 .fileView {
 	height: 24px;
   display: flex;
-  padding-left: 12px;
-	padding-top: 8px;
-	padding-bottom: 8px;
+  padding: 16px;
 	margin-top: 4px;
 	margin-bottom: 4px;
 	background-color: var(--lighter);
