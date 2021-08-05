@@ -147,7 +147,18 @@ function saveScoreToLibrary(fileName, fileText) {
 }
 
 function loadSampleScore() {
+	const sampleScoreFilePath = "data/sample_scores/Bach_Minuet_in_G_Major_BWV_Anh_114.xml";
 
+	const xhr = new XMLHttpRequest();
+  xhr.open("GET", sampleScoreFilePath, true);
+  xhr.onreadystatechange = () => {
+  	console.log("xhr", xhr);
+    if (xhr.readyState === 4 && xhr.status === 200) {
+      showView(viewNames.SCORE);
+      renderScore(xhr.responseXML);
+    }
+  };
+  xhr.send();
 }
 
 function renderScore(xmlDoc) {
