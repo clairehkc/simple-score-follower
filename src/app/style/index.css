@@ -199,20 +199,23 @@ a:hover {
   justify-content: center;
   font-size: 12px;
   flex-shrink: 0;
-  padding-bottom: 12px;
+  padding-bottom: 8px;
 }
 
 .footerItem {
+  line-height: 24px;
   margin-left: 8px;
   margin-right: 8px;
 }
 
-#githubIconContainer {
-  padding-top: 4px;
+#githubContainer {
   height: 24px;
-  width: 24px;
+  display: flex;
 }
 
-#githubIconContainer img {
-  height: 100%;
+#githubIcon {
+  height: 20px;
+  line-height: 20px;
+  padding-left: 8px;
+  padding-right: 8px;
 }
