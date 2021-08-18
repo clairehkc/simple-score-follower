@@ -152,7 +152,6 @@ function loadSampleScore() {
 	const xhr = new XMLHttpRequest();
   xhr.open("GET", sampleScoreFilePath, true);
   xhr.onreadystatechange = () => {
-  	console.log("xhr", xhr);
     if (xhr.readyState === 4 && xhr.status === 200) {
       showView(viewNames.SCORE);
       renderScore(xhr.responseXML);
@@ -217,7 +216,6 @@ function startStream() {
 	const boundingRect = startButton.getBoundingClientRect();
 	const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
 	const startButtonTop = boundingRect.top + scrollTop;
-	console.log("startButtonTop", startButtonTop);
 	window.scroll({
 	  top: parseFloat(startButtonTop),
 	  behavior: 'smooth'
