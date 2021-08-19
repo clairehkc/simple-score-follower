@@ -230,7 +230,7 @@ function stopStream() {
 	startButton.setAttribute('class', 'controlButton enabled');
 }
 
-function getNextExpectedMonophonicSequence(index, sequenceLength = 3) {
+function getNextExpectedMonophonicSequence(index, sequenceLength = 6) {
 	if (index + 1 >= scoreEventList.length) return;
 	let sequence = [];
 	for (let i = index + 1; i < scoreEventList.length; i++) {
@@ -265,8 +265,6 @@ function onReceiveMatchResult(scoreEventId, matchResult, matchTime) {
 		noteEventDetector.stopAttemptRecovery();
 	}
 
-	let newScoreIndex = currentScoreIndex;
-
 	// handle repeats
 	const currentScoreEvent = scoreEventList[currentScoreIndex];
 	if (currentScoreEvent.isEndRepeatEvent && !currentScoreEvent.hasCompletedRepeat) {
@@ -279,9 +277,9 @@ function onReceiveMatchResult(scoreEventId, matchResult, matchTime) {
 		if (currentScoreIndex === scoreEventList.length - 1) return;
 		if (scoreEventId === currentScoreIndex) {
 			// sequential match
-			newScoreIndex++;
+			currentScoreIndex++;
 			osmd.cursor.next();
-			updateScorePosition(newScoreIndex);
+			updateScorePosition(currentScoreIndex);
 		} else {
 			// recovery match, jump forward
 			const matchedEvent = scoreEventList[scoreEventId];
@@ -292,7 +290,7 @@ function onReceiveMatchResult(scoreEventId, matchResult, matchTime) {
 
 	lastMatchAcceptTime = matchTime;
 
-	const nextScoreEvent = scoreEventList[newScoreIndex];
+	const nextScoreEvent = scoreEventList[currentScoreIndex];
 	if (nextScoreEvent.noteEventString !== "X") {
 		nextNoteEventLength = nextScoreEvent.noteEventLength;
 	} else {

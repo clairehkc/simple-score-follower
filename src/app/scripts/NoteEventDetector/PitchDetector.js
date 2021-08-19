@@ -7,7 +7,10 @@ class PitchDetector {
 		this.matchCallback = matchCallback;
 		this.isActive = false;
 		this.isAttemptingRecovery = false;
+		this.recoveryMatchCount = 0;
+		this.lastMatchNoteEvent = undefined;
 		this.nextExpectedMonophonicSequence;
+		this.isMonophonicPiece;
 		this.detector;
 		this.nextExpectedNoteEvent;
 		this.noteToFrequencyTable = {};
@@ -49,19 +52,31 @@ class PitchDetector {
 	getPitchCallback(err, frequency) {
 	  if (frequency && this.getRms() > 0.002) {
 	  	if (this.isAttemptingRecovery && this.nextExpectedMonophonicSequence && this.nextExpectedMonophonicSequence.length > 0) {
-	  		// keep attempting until cleared or heard all 3 notes
-				const nextExpectedMonophonicPitchEvent = this.nextExpectedMonophonicSequence[0];
-				const nextExpectedMonophonicPitch = this.noteToFrequencyTable[nextExpectedMonophonicPitchEvent.noteEventString];
-	  		if (!nextExpectedMonophonicPitch) {
-	  			console.error("Invalid note event for pitch detector", this.nextExpectedMonophonicSequence.noteEventString);
-	  			return;
+	  		// keep attempting until match or matched 3 future notes
+	  		let lastMatchNoteEventId;
+	  		const nextExpectedMonophonicPitches = this.nextExpectedMonophonicSequence.map(noteEvent => this.noteToFrequencyTable[noteEvent.noteEventString]);
+	  		for (let i = 0; i < nextExpectedMonophonicPitches.length; i++) {
+	  			const noteEvent = this.nextExpectedMonophonicSequence[i];
+	  			if (this.lastMatchNoteEvent && this.lastMatchNoteEvent.noteEventString === noteEvent.noteEventString) continue;
+
+	  			if (!nextExpectedMonophonicPitches[i]) {
+	  				console.error("Invalid note event for pitch detector", noteEvent.noteEventString);
+	  				return;
+	  			}	  			
+
+	  			const recoveryMatchResult = this.determineMatch(nextExpectedMonophonicPitches[i], frequency, true);
+	  			if (recoveryMatchResult) {
+	  				this.lastMatchNoteEvent = noteEvent;
+	  				lastMatchNoteEventId = noteEvent.scoreEventId;
+	  				this.nextExpectedMonophonicSequence.splice(i, 1);
+	  				this.recoveryMatchCount++;
+	  				break;
+	  			}
 	  		}
-	  		
-	  		const matchResult = this.determineMatch(nextExpectedMonophonicPitch, frequency, true);
-	  		if (matchResult) this.nextExpectedMonophonicSequence.shift();
-	  		
-	  		if (this.nextExpectedMonophonicSequence.length === 0) {
-	  			this.matchCallback(nextExpectedMonophonicPitchEvent.scoreEventId, true, -1); // set matchTime to -1 to override timing requirement
+
+	  		if (this.recoveryMatchCount === 3) {
+	  			console.log("recoveryAccept", lastMatchNoteEventId);
+	  			this.matchCallback(lastMatchNoteEventId, true, -1); // set matchTime to -1 to override timing requirement
 	  		}
 	  	}
 
@@ -84,7 +99,8 @@ class PitchDetector {
 	}
 
 	determineMatch(expectedPitch, detectedPitch, isAttemptingRecovery = false) {
-		const matchResult = Math.abs(expectedPitch - detectedPitch) < 5;
+		const pitchDifferenceAllowance = this.isMonophonicPiece ? 15 : 5;
+		const matchResult = Math.abs(expectedPitch - detectedPitch) < pitchDifferenceAllowance;
 		if (this.isUsingTestInterface) {
 			document.getElementById('detectedPitchValue').innerHTML = detectedPitch;
 			document.getElementById('expectedPitchValue').innerHTML = expectedPitch;
@@ -104,6 +120,8 @@ class PitchDetector {
 	stopAttemptRecovery() {
 		this.isAttemptingRecovery = false;
 		this.nextExpectedMonophonicSequence = undefined;
+		this.recoveryMatchCount = 0;
+		this.lastMatchNoteEvent = undefined;
 	}
 
 	activate() {
