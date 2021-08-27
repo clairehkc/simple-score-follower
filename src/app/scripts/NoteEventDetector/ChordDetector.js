@@ -9,6 +9,7 @@ class ChordDetector {
 		this.chordToTemplateTable = {};
 		this.templateToChordTable = {};
 		this.templates = [];
+		this.lastChromas = [];
 		this.logTable = logTable;
 		this.isUsingTestInterface = isUsingTestInterface;
 
@@ -117,9 +118,9 @@ class ChordDetector {
 	}
 
 	// ** checking approx peaks
-	determineMatch(detectedChroma) {
+	determineMatchPeaks(detectedChroma) {
 		if (this.isZeroVector(detectedChroma)) return;
-
+		// console.log("detectedChroma", detectedChroma.map(chroma => this.pitchClasses[detectedChroma.indexOf(chroma)] + ": " + chroma));
 		const expectedNotes = [...new Set(this.nextExpectedNoteEvent.keys)];
 		const expectedIndices = expectedNotes.map(note => this.pitchClasses.indexOf(note));
 		const expectedIndicesAndNeighbors = expectedIndices.slice();
@@ -136,7 +137,7 @@ class ChordDetector {
 		// console.log("expectedIndicesAndNeighbors", expectedIndicesAndNeighbors);
 
 		const chromaAtExpectedIndices = expectedIndicesAndNeighbors.map(index => detectedChroma[index]);
-		// console.log("chroma", chromaAtExpectedIndices);
+		// console.log("chromaAtExpectedIndices", chromaAtExpectedIndices);
 		const proTotal = chromaAtExpectedIndices.reduce((a, b) => a + b, 0);
 		const proAverage = proTotal / expectedIndicesAndNeighbors.length;
 
@@ -151,18 +152,17 @@ class ChordDetector {
 		// console.log("unexpectedIndices", unexpectedIndices);
 		
 		let matchResult;
+		const proAverageRequirement = 0.7;
+
+		matchResult = (proAverage > proAverageRequirement) && groupAverages.every(average => average > proAverage - 0.2);
 
 		if (unexpectedIndices.length !== 0) {
 			const chromaAtUnexpectedIndices = unexpectedIndices.map(index => detectedChroma[index]);
 			const conTotal = chromaAtUnexpectedIndices.reduce((a, b) => a + b, 0);
 			const conAverage = conTotal / unexpectedIndices.length;
-			console.log("avg compare diff", proAverage, conAverage, proAverage - conAverage);
+			// console.log("avg compare diff", proAverage, conAverage, proAverage - conAverage);
 			// matchResult = (proAverage > conAverage) && (proAverage > 0.80) && (conAverage < 0.75);
-			const hasMoreThanTwoNotes = this.nextExpectedNoteEvent.keys.length > 2;
-			const proAverageRequirement = 0.7;
-			matchResult = (proAverage > proAverageRequirement) && (proAverage > conAverage) && groupAverages.every(average => average > proAverage - 0.2);
-		} else {
-			matchResult = true;
+			matchResult = matchResult && (proAverage > conAverage);
 		}
 
 		const chromaLabels = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
@@ -180,6 +180,44 @@ class ChordDetector {
 		return matchResult;
 	}
 
+	// ** checking expected peaks for high energy across X samples
+	determineMatch(detectedChroma) {
+		if (this.isZeroVector(detectedChroma)) return;
+		// console.log("detectedChroma", detectedChroma.map(chroma => this.pitchClasses[detectedChroma.indexOf(chroma)] + ": " + chroma));
+		const sampleSize = 10;
+		const expectedNotes = [...new Set(this.nextExpectedNoteEvent.keys)];
+		const expectedIndices = expectedNotes.map(note => this.pitchClasses.indexOf(note));
+		const chromaAtExpectedIndices = expectedIndices.map(index => detectedChroma[index]);
+		this.lastChromas.push(detectedChroma);
+		if (this.lastChromas.length < sampleSize) return;
+
+		const filteredLastChromas = this.lastChromas.map(chromaArray => expectedIndices.map(index => chromaArray[index]));
+
+		const averageChromaAtExpectedIndices = [];
+		for (let i = 0; i < expectedIndices.length; i++) {
+			const sum = filteredLastChromas.reduce((a, b) => {
+				return a + b[i];
+			}, 0);
+			averageChromaAtExpectedIndices.push(sum / sampleSize);
+		}
+		// console.log("averages", averageChromaAtExpectedIndices);
+		const matchResult = (averageChromaAtExpectedIndices.filter(value => value > 0.9).length >= 1) &&
+			(averageChromaAtExpectedIndices.filter(value => value > 0.5).length >= expectedIndices.length - 1);
+
+		const chromaLabels = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+		const truncatedChroma = detectedChroma.map((value, index) => chromaLabels[index] + ": " + value.toFixed(2));
+
+		this.matchCallback(this.nextExpectedNoteEvent.scoreEventId, matchResult, Date.now());
+
+		if (this.isUsingTestInterface) {
+			document.getElementById('detectedChromaValue').innerHTML = truncatedChroma;
+			document.getElementById('chordMatchResult').innerHTML = matchResult;
+		}
+
+		this.logResult(this.nextExpectedNoteEvent.noteEventString, truncatedChroma, matchResult);
+		this.lastChromas = [];
+		return matchResult;
+	}
 
 	// determines the closest chord label for the score event
 	getChordForNoteEvent(noteEvent) {

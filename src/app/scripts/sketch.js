@@ -249,7 +249,7 @@ function onReceiveMatchResult(scoreEventId, matchResult, matchTime) {
 	if (!matchResult) {
 		if (!isAttemptingRecovery) {
 			consecutiveMisses++;
-			if (consecutiveMisses > 15) {
+			if (consecutiveMisses > 8) {
 				const nextExpectedMonophonicSequence = getNextExpectedMonophonicSequence(currentScoreIndex);
 				noteEventDetector.startAttemptRecovery(nextExpectedMonophonicSequence);
 				isAttemptingRecovery = true;
