@@ -31,12 +31,16 @@ class NoteEventDetector {
 	reset() {
 		this.nextExpectedNoteEvent = undefined;
 		this.noteEventMap = {};
+		this.isMonophonicPiece = true;
 		this.pitchDetector.isMonophonicPiece = true;
 	}
 
 	addNoteEvent(noteEventString, scoreEventId) {
 		const noteEvent = this.createNoteEvent(noteEventString, scoreEventId);
-		if (this.pitchDetector.isMonophonicPiece && !noteEvent.isMonophonic) this.pitchDetector.isMonophonicPiece = false;
+		if (this.pitchDetector.isMonophonicPiece && !noteEvent.isMonophonic) {
+			this.isMonophonicPiece = false;
+			this.pitchDetector.isMonophonicPiece = false;
+		}
 		this.noteEventMap[scoreEventId] = noteEvent;
 	}
 

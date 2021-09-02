@@ -248,8 +248,9 @@ function onReceiveMatchResult(scoreEventId, matchResult, matchTime) {
 	if (matchTime !== -1 && ((matchTime - lastMatchAcceptTime) < nextNoteEventLength)) return;
 	if (!matchResult) {
 		if (!isAttemptingRecovery) {
+			const allowedMisses = noteEventDetector.isMonophonicPiece ? 20 : 8;
 			consecutiveMisses++;
-			if (consecutiveMisses > 8) {
+			if (consecutiveMisses > allowedMisses) {
 				const nextExpectedMonophonicSequence = getNextExpectedMonophonicSequence(currentScoreIndex);
 				noteEventDetector.startAttemptRecovery(nextExpectedMonophonicSequence);
 				isAttemptingRecovery = true;

@@ -99,7 +99,7 @@ class PitchDetector {
 	}
 
 	determineMatch(expectedPitch, detectedPitch, isAttemptingRecovery = false) {
-		const pitchDifferenceAllowance = this.isMonophonicPiece ? 15 : 5;
+		const pitchDifferenceAllowance = !this.isUsingTestInterface && this.isMonophonicPiece ? 15 : 5;
 		const matchResult = Math.abs(expectedPitch - detectedPitch) < pitchDifferenceAllowance;
 		if (this.isUsingTestInterface) {
 			document.getElementById('detectedPitchValue').innerHTML = detectedPitch;
