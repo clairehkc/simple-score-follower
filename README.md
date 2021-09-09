@@ -1,4 +1,4 @@
-# score-following
+# Simple Score Follower
 
 ## Getting Started
 
