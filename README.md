@@ -1,10 +1,12 @@
 # Simple Score Follower
 
-## Getting Started
+Try [Simple Score Follower](https://clairehkc.github.io/simple-score-follower/src/app/) online
 
-1) Clone the repo
+## Running the app locally
 
-2) In the `score-following` directory, start a SimpleHTTPServer via `python -m SimpleHTTPServer`
+1) Clone this repo
+
+2) In the `simple-score-follower` directory, start a SimpleHTTPServer via `python -m SimpleHTTPServer`
 
 3) Run the app by opening `http://localhost:8000/src/app` in Chrome
 
@@ -12,7 +14,7 @@
 
 5) Hit the leftmost microphone button to start following (must allow microphone permissions)
 
-## Running NoteEventDetector
+## Running the pitch/chord detector test interface
 
 1) Open `http://localhost:8000/src/app/NoteEventDetectorTestInterface.html` in Chrome
 
