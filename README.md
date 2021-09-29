@@ -8,7 +8,7 @@ Try [Simple Score Follower](https://clairehkc.github.io/simple-score-follower/sr
 
 2) In the `simple-score-follower` directory, start a SimpleHTTPServer via `python -m SimpleHTTPServer`
 
-3) Run the app by opening `http://localhost:8000/src/app` in Chrome
+3) Run the app by opening `http://localhost:8000/` in Chrome
 
 4) Upload a musicXML file (.xml) or load the sample score
 
@@ -16,7 +16,7 @@ Try [Simple Score Follower](https://clairehkc.github.io/simple-score-follower/sr
 
 ## Running the pitch/chord detector test interface
 
-1) Open `http://localhost:8000/src/app/NoteEventDetectorTestInterface.html` in Chrome
+1) Open `http://localhost:8000/NoteEventDetectorTestInterface.html` in Chrome
 
 2) Enter an event in the form of `<note><octave>` for a single note or `<note1-note2-note3>` for a chord. Try entering "C4" or "C-E-G" for an example.
 

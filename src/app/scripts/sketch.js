@@ -84,7 +84,7 @@ function updateLibraryView() {
 
 		const fileViewFileIcon = document.createElement("img");
 		fileViewFileIcon.className = "fileViewFileIcon";
-		fileViewFileIcon.src = "style/icons/music-file.svg";
+		fileViewFileIcon.src = "src/app/style/icons/music-file.svg";
 		fileView.appendChild(fileViewFileIcon);
 
 		const fileViewText = document.createElement("div");
@@ -94,10 +94,10 @@ function updateLibraryView() {
 
 		const fileViewDeleteIcon = document.createElement("img");
 		fileViewDeleteIcon.className = "fileViewDeleteIcon";
-		fileViewDeleteIcon.src = "style/icons/delete.svg";
+		fileViewDeleteIcon.src = "src/app/style/icons/delete.svg";
 		fileViewDeleteIcon.title = "Delete Score"
-		fileViewDeleteIcon.onmouseover = () => fileViewDeleteIcon.src = "style/icons/delete-dark.svg";
-		fileViewDeleteIcon.onmouseout = () => fileViewDeleteIcon.src = "style/icons/delete.svg";
+		fileViewDeleteIcon.onmouseover = () => fileViewDeleteIcon.src = "src/app/style/icons/delete-dark.svg";
+		fileViewDeleteIcon.onmouseout = () => fileViewDeleteIcon.src = "src/app/style/icons/delete.svg";
 		fileViewDeleteIcon.onclick = (event) => {
 			localStorage.removeItem(fileView.id);
 			event.stopPropagation();
@@ -147,7 +147,7 @@ function saveScoreToLibrary(fileName, fileText) {
 }
 
 function loadSampleScore() {
-	const sampleScoreFilePath = "data/sample_scores/Bach_Minuet_in_G_Major_BWV_Anh_114.xml";
+	const sampleScoreFilePath = "src/app/data/sample_scores/Bach_Minuet_in_G_Major_BWV_Anh_114.xml";
 
 	const xhr = new XMLHttpRequest();
   xhr.open("GET", sampleScoreFilePath, true);

@@ -26,7 +26,7 @@ class ChordDetector {
 
 	initializeChordToTemplateTable() {
 		const self = this;
-		fetch("././data/ChordTemplates.json")
+		fetch("src/app/data/ChordTemplates.json")
 		.then(response => {
 		   return response.json();
 		})
