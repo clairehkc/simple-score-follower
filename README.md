@@ -1,6 +1,6 @@
 # Simple Score Follower
 
-Try [Simple Score Follower](https://clairehkc.github.io/simple-score-follower/src/app/) online
+Try [Simple Score Follower](https://clairehkc.github.io/simple-score-follower) online
 
 ## Running the app locally
 
