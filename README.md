@@ -1,6 +1,8 @@
 # Simple Score Follower
 
-Try [Simple Score Follower](https://clairehkc.github.io/simple-score-follower) online
+Try [Simple Score Follower](https://clairehkc.github.io/simple-score-follower) online.
+
+If you're interested in learning about the approach for this project, check out my [paper](https://dash.harvard.edu/handle/1/37370639).
 
 ## Running the app locally
 
